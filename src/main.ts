@@ -4,6 +4,8 @@ import { SERVER_PORT, SERVER_PORT_2 } from './utils/constant';
 import { winstonLogger } from './configs/winston.config';
 import * as morgan from 'morgan';
 import { TransformInterceptor } from './interceptors/response.interceptor';
+import { SwaggerConfig } from './configs/swagger.config';
+import { SwaggerModule } from '@nestjs/swagger';
 
 const port = SERVER_PORT || SERVER_PORT_2;
 
@@ -17,6 +19,13 @@ async function bootstrap() {
 
   // use global interceptors
   app.useGlobalInterceptors(new TransformInterceptor());
+
+  // run swagger
+  const config = new SwaggerConfig().initializeOptions();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/swagger', app, document, {
+    swaggerOptions: { defaultModelsExpandDepth: -1 },
+  });
 
   // run server
   try {

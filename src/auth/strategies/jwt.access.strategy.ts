@@ -22,9 +22,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'access') {
         throw new BadRequestException('There is no access token in header');
       }
       const secretKey = this.configService.get<string>('JWT_SECRET_KEY');
-      const payload = jwt.verify(userToken, secretKey); // payload에는 userId만
-      const userId = payload['userId'];
-      return userId;
+      const payload = jwt.verify(userToken, secretKey);
+      return payload;
     } catch (e) {
       this.logger.error(e);
       throw e;
