@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { SERVER_PORT, SERVER_PORT_2 } from './utils/constant';
 import { winstonLogger } from './configs/winston.config';
 import * as morgan from 'morgan';
+import { TransformInterceptor } from './interceptors/response.interceptor';
 
 const port = SERVER_PORT || SERVER_PORT_2;
 
@@ -13,6 +14,9 @@ async function bootstrap() {
 
   // app.use(morgan('combined'));  // product
   app.use(morgan('dev')); // dev
+
+  //
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // run server
   try {
