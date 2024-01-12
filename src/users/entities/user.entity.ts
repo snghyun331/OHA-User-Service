@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { OAuthType } from '../types/user.enum';
 
 @Entity('User')
-@Unique(['oauthId'])
+// @Unique(['name'])
 export class UserEntity {
   @PrimaryGeneratedColumn()
   userId: number;
@@ -10,8 +10,11 @@ export class UserEntity {
   @Column({ type: 'enum', enum: OAuthType, nullable: false })
   oauthType: OAuthType;
 
+  @Column({ type: 'varchar', nullable: true })
+  googleProviderId: string;
+
   @Column({ type: 'varchar', nullable: false })
-  oauthId: string;
+  email: string;
 
   @Column({ type: 'varchar', nullable: true })
   hashedRF: string;

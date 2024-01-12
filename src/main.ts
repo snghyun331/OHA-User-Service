@@ -15,7 +15,7 @@ async function bootstrap() {
   // app.use(morgan('combined'));  // product
   app.use(morgan('dev')); // dev
 
-  //
+  // use global interceptors
   app.useGlobalInterceptors(new TransformInterceptor());
 
   // run server
