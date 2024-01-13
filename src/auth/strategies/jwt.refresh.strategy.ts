@@ -24,7 +24,8 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
       const secretKey = this.configService.get<string>('JWT_REFRESH_SECRET_KEY');
       const payload = jwt.verify(refreshToken, secretKey);
       const userId = payload['userId'];
-      return this.authService.getUserIfRefreshTokenMatches(refreshToken, userId);
+      await this.authService.checkIfRefreshTokenMatches(refreshToken, userId);
+      return payload;
     } catch (e) {
       this.logger.error(e);
       throw e;

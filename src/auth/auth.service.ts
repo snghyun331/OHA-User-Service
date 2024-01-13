@@ -41,7 +41,7 @@ export class AuthService {
     }
   }
 
-  async getUserIfRefreshTokenMatches(refreshToken: string, userId: number) {
+  async checkIfRefreshTokenMatches(refreshToken: string, userId: number) {
     try {
       const user = await this.usersRepository.findOne({ where: { userId } });
       if (!user || !user.hashedRF) {
@@ -49,7 +49,7 @@ export class AuthService {
       }
       const isRefreshTokenMatching = await bcrypt.compare(refreshToken, user.hashedRF);
       if (isRefreshTokenMatching) {
-        return user;
+        return;
       } else {
         throw new UnauthorizedException('Refresh 토큰이 사용자 것과 일치하지 않습니다');
       }
@@ -59,7 +59,7 @@ export class AuthService {
     }
   }
 
-  private async getCookieWithAccessToken(userId: number, googleProviderId: string) {
+  async getCookieWithAccessToken(userId: number, googleProviderId: string) {
     try {
       const user = this.usersRepository.findOne({ where: { userId } });
       if (!user) {
