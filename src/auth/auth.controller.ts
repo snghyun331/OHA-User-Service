@@ -1,10 +1,12 @@
-import { Controller, Get, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { GetUser, GetUserGoogleId, GetUserId } from 'src/utils/decorators/get-user.decorator';
+import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
+import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
 
 @ApiTags('AUTH')
 @Controller('api/auth')
@@ -17,13 +19,15 @@ export class AuthController {
   async googleLogin(): Promise<void> {}
 
   @UseGuards(GoogleAuthGuard)
+  @UseInterceptors(TransactionInterceptor)
   @Get('google/callback')
   async googleCallback(
+    @TransactionManager() transactionManager,
     @GetUser() user,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const { type, accessToken, accessOption, refreshToken, refreshOption } =
-      await this.authService.googleRegisterOrLogin(user);
+      await this.authService.googleRegisterOrLogin(user, transactionManager);
 
     res.cookie('Access-Token', accessToken, accessOption);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
