@@ -1,17 +1,9 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  LoggerService,
-  UnauthorizedException,
-  ForbiddenException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { OAuthType } from 'src/users/types/user.enum';
 import { SALT_ROUND } from 'src/utils/constant';
@@ -25,35 +17,27 @@ export class AuthService {
     private usersRepository: Repository<UserEntity>,
     private jwtService: JwtService,
     private configService: ConfigService,
-    private dataSource: DataSource,
   ) {}
 
   async googleRegisterOrLogin(googleUser, transactionManager: EntityManager) {
-    // const queryRunner = this.dataSource.createQueryRunner();
-    // await queryRunner.connect();
-    // await queryRunner.startTransaction();
     try {
       let type;
       let result;
-      const { providerId, email, name } = googleUser;
+      const { providerId } = googleUser;
       const user = await this.usersRepository.findOne({ where: { googleProviderId: providerId } });
       if (!user) {
         // 새로운 회원 가입&로그인
-        const newUser = await this.createGoogleUser(providerId, email, name);
-        const user = await transactionManager.save(newUser);
-        result = await this.googleLogin(user);
+        const newUser = await this.createGoogleUser(googleUser, transactionManager);
+        result = await this.googleLogin(newUser, transactionManager);
         type = 'new';
       } else {
         // 기존 회원 로그인
-        result = await this.googleLogin(user);
+        result = await this.googleLogin(user, transactionManager);
         type = 'exist';
       }
-      // throw new InternalServerErrorException();
-      // await queryRunner.commitTransaction();
       return { type: type, ...result };
     } catch (e) {
       this.logger.error(e);
-      // await queryRunner.rollbackTransaction();
       throw e;
     }
   }
@@ -101,7 +85,7 @@ export class AuthService {
     }
   }
 
-  private async getCookieWithRefreshToken(userId: number, googleProviderId: string) {
+  async getCookieWithRefreshToken(userId: number, googleProviderId: string) {
     try {
       const user = this.usersRepository.findOne({ where: { userId } });
       if (!user) {
@@ -127,7 +111,7 @@ export class AuthService {
     }
   }
 
-  private async googleLogin(user) {
+  async googleLogin(user, transactionManager) {
     const [accessTokenResult, refreshTokenResult] = await Promise.all([
       this.getCookieWithAccessToken(user.userId, user.googleProviderId),
       this.getCookieWithRefreshToken(user.userId, user.googleProviderId),
@@ -135,17 +119,19 @@ export class AuthService {
     const { accessToken, ...accessOption } = accessTokenResult;
     const { refreshToken, ...refreshOption } = refreshTokenResult;
     const hashedRF = await bcrypt.hash(refreshToken, SALT_ROUND);
-    await this.usersRepository.update(user.userId, { hashedRF });
+    await transactionManager.update(UserEntity, user.userId, { hashedRF });
     const result = { accessToken, accessOption, refreshToken, refreshOption };
     return result;
   }
 
-  private async createGoogleUser(providerId, email, name) {
+  async createGoogleUser(googleUser, transactionManager) {
+    const { providerId, email, name } = googleUser;
     const newUser = new UserEntity();
     newUser.oauthType = OAuthType.google;
     newUser.googleProviderId = providerId;
     newUser.email = email;
     newUser.name = name;
-    return newUser;
+    const user = await transactionManager.save(newUser);
+    return user;
   }
 }
