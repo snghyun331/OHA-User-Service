@@ -3,9 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { OAuthType } from 'src/users/types/user.enum';
+import { SALT_ROUND } from 'src/utils/constant';
 
 @Injectable()
 export class AuthService {
@@ -18,30 +19,30 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async googleRegisterOrLogin(googleUser) {
+  async googleRegisterOrLogin(googleUser, transactionManager: EntityManager) {
     try {
-      const { providerId, email, name } = googleUser;
+      let type;
+      let result;
+      const { providerId } = googleUser;
       const user = await this.usersRepository.findOne({ where: { googleProviderId: providerId } });
       if (!user) {
         // 새로운 회원 가입&로그인
-        const newUser = await this.createGoogleUser(providerId, email, name);
-        const user = await this.usersRepository.save(newUser);
-        const result = await this.googleLogin(user);
-        const type = 'new';
-        return { type: type, ...result };
+        const newUser = await this.createGoogleUser(googleUser, transactionManager);
+        result = await this.googleLogin(newUser, transactionManager);
+        type = 'new';
       } else {
         // 기존 회원 로그인
-        const result = await this.googleLogin(user);
-        const type = 'exist';
-        return { type: type, ...result };
+        result = await this.googleLogin(user, transactionManager);
+        type = 'exist';
       }
+      return { type: type, ...result };
     } catch (e) {
       this.logger.error(e);
       throw e;
     }
   }
 
-  async getUserIfRefreshTokenMatches(refreshToken: string, userId: number) {
+  async checkIfRefreshTokenMatches(refreshToken: string, userId: number) {
     try {
       const user = await this.usersRepository.findOne({ where: { userId } });
       if (!user || !user.hashedRF) {
@@ -49,7 +50,7 @@ export class AuthService {
       }
       const isRefreshTokenMatching = await bcrypt.compare(refreshToken, user.hashedRF);
       if (isRefreshTokenMatching) {
-        return user;
+        return;
       } else {
         throw new UnauthorizedException('Refresh 토큰이 사용자 것과 일치하지 않습니다');
       }
@@ -59,7 +60,7 @@ export class AuthService {
     }
   }
 
-  private async getCookieWithAccessToken(userId: number, googleProviderId: string) {
+  async getCookieWithAccessToken(userId: number, googleProviderId: string) {
     try {
       const user = this.usersRepository.findOne({ where: { userId } });
       if (!user) {
@@ -72,10 +73,10 @@ export class AuthService {
       });
       const result = {
         accessToken: token,
-        domain: this.configService.get('DB_HOST'),
+        domain: this.configService.get('HOST'),
         path: '/',
         httpOnly: true,
-        maxAge: +this.configService.get('JWT_ACCESS_EXPIRATION_TIME') * 1000,
+        maxAge: +this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
       };
       return result;
     } catch (e) {
@@ -84,7 +85,7 @@ export class AuthService {
     }
   }
 
-  private async getCookieWithRefreshToken(userId: number, googleProviderId: string) {
+  async getCookieWithRefreshToken(userId: number, googleProviderId: string) {
     try {
       const user = this.usersRepository.findOne({ where: { userId } });
       if (!user) {
@@ -98,10 +99,10 @@ export class AuthService {
 
       const result = {
         refreshToken: token,
-        domain: 'localhost',
+        domain: this.configService.get('HOST'),
         path: '/',
         httpOnly: true,
-        maxAge: +this.configService.get('JWT_REFRESH_EXPIRATION_TIME') * 1000,
+        maxAge: +this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
       };
       return result;
     } catch (e) {
@@ -110,32 +111,27 @@ export class AuthService {
     }
   }
 
-  private async hashAndSaveRF(refreshToken: string, userId: number) {
-    const hashedRF = await bcrypt.hash(refreshToken, 10);
-    await this.usersRepository.update(userId, { hashedRF });
-    return;
-  }
-
-  private async googleLogin(user) {
+  async googleLogin(user, transactionManager) {
     const [accessTokenResult, refreshTokenResult] = await Promise.all([
       this.getCookieWithAccessToken(user.userId, user.googleProviderId),
       this.getCookieWithRefreshToken(user.userId, user.googleProviderId),
     ]);
-
     const { accessToken, ...accessOption } = accessTokenResult;
     const { refreshToken, ...refreshOption } = refreshTokenResult;
-
-    await this.hashAndSaveRF(refreshToken, user.userId);
+    const hashedRF = await bcrypt.hash(refreshToken, SALT_ROUND);
+    await transactionManager.update(UserEntity, user.userId, { hashedRF });
     const result = { accessToken, accessOption, refreshToken, refreshOption };
     return result;
   }
 
-  private async createGoogleUser(providerId, email, name) {
+  async createGoogleUser(googleUser, transactionManager) {
+    const { providerId, email, name } = googleUser;
     const newUser = new UserEntity();
     newUser.oauthType = OAuthType.google;
     newUser.googleProviderId = providerId;
     newUser.email = email;
     newUser.name = name;
-    return newUser;
+    const user = await transactionManager.save(newUser);
+    return user;
   }
 }
