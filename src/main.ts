@@ -1,13 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SERVER_PORT, SERVER_PORT_2 } from './utils/constant';
 import { winstonLogger } from './configs/winston.config';
 import * as morgan from 'morgan';
 import { TransformInterceptor } from './interceptors/response.interceptor';
 import { SwaggerConfig } from './configs/swagger.config';
 import { SwaggerModule } from '@nestjs/swagger';
+import { Transport } from '@nestjs/microservices';
 
-const port = SERVER_PORT || SERVER_PORT_2;
+const port = process.env.PORT1 || process.env.PORT2;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -30,7 +30,15 @@ async function bootstrap() {
   // run server
   try {
     await app.listen(port);
-    winstonLogger.log(`Server is listening on port ${port} successfully`);
+    await app.connectMicroservice({
+      transport: Transport.TCP,
+      options: {
+        host: process.env.MS_HOST,
+        port: process.env.MS_PORT,
+      },
+    });
+    await app.startAllMicroservices();
+    winstonLogger.log(`Server is running on TCP with http port ${port}`);
   } catch (error) {
     winstonLogger.error('Failed to start the app server');
   }
