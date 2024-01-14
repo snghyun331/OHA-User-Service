@@ -5,7 +5,6 @@ import * as morgan from 'morgan';
 import { TransformInterceptor } from './interceptors/response.interceptor';
 import { SwaggerConfig } from './configs/swagger.config';
 import { SwaggerModule } from '@nestjs/swagger';
-import { Transport } from '@nestjs/microservices';
 
 const port = process.env.PORT1 || process.env.PORT2;
 
@@ -30,15 +29,7 @@ async function bootstrap() {
   // run server
   try {
     await app.listen(port);
-    await app.connectMicroservice({
-      transport: Transport.TCP,
-      options: {
-        host: process.env.MS_HOST,
-        port: process.env.MS_PORT,
-      },
-    });
-    await app.startAllMicroservices();
-    winstonLogger.log(`Server is running on TCP with http port ${port}`);
+    winstonLogger.log(`Server is running on http port ${port}`);
   } catch (error) {
     winstonLogger.error('Failed to start the app server');
   }
