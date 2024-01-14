@@ -125,12 +125,12 @@ export class AuthService {
   }
 
   async createGoogleUser(googleUser, transactionManager) {
-    const { providerId, email, name } = googleUser;
+    const { providerId, email } = googleUser;
     const newUser = new UserEntity();
     newUser.oauthType = OAuthType.google;
     newUser.googleProviderId = providerId;
     newUser.email = email;
-    newUser.name = name;
+    newUser.name = email.substring(0, email.indexOf('@'));
     const user = await transactionManager.save(newUser);
     return user;
   }
