@@ -10,7 +10,6 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
       clientID: configService.get('OAUTH_NAVER_ID'),
       clientSecret: configService.get('OAUTH_NAVER_SECRET'),
       callbackURL: configService.get('OAUTH_NAVER_REDIRECT'),
-      scope: ['email', 'gender'],
     });
   }
 

@@ -14,6 +14,9 @@ pipeline {
         OAUTH_KAKAO_ID = credentials('oauth_kakao_id')
         OAUTH_KAKAO_SECRET = credentials('oauth_kakao_secret')
         OAUTH_KAKAO_REDIRECT = credentials('oauth_kakao_redirect')
+        OAUTH_NAVER_ID = credentials('oauth_naver_id')
+        OAUTH_NAVER_SECRET = credentials('oauth_naver_secret')
+        OAUTH_NAVER_REDIRECT = credentials('oauth_naver_redirect')
         JWT_SECRET_KEY = credentials('jwt_secret_key')
         JWT_REFRESH_SECRET_KEY = credentials('jwt_refresh_secret_key')
         JWT_ACCESS_EXPIRATION_TIME = credentials('jwt_access_expiration_time')
@@ -60,6 +63,12 @@ pipeline {
                             echo "OAUTH_GOOGLE_ID=${OAUTH_GOOGLE_ID}" >> .product.env
                             echo "OAUTH_GOOGLE_SECRET=${OAUTH_GOOGLE_SECRET}" >> .product.env
                             echo "OAUTH_GOOGLE_REDIRECT=${OAUTH_GOOGLE_REDIRECT}" >> .product.env
+                            echo "OAUTH_KAKAO_ID=${OAUTH_KAKAO_ID}" >> .product.env
+                            echo "OAUTH_KAKAO_SECRET=${OAUTH_KAKAO_SECRET}" >> .product.env
+                            echo "OAUTH_KAKAO_REDIRECT=${OAUTH_KAKAO_REDIRECT}" >> .product.env
+                            echo "OAUTH_NAVER_ID=${OAUTH_NAVER_ID}" >> .product.env
+                            echo "OAUTH_NAVER_SECRET=${OAUTH_NAVER_SECRET}" >> .product.env
+                            echo "OAUTH_NAVER_REDIRECT=${OAUTH_NAVER_REDIRECT}" >> .product.env
                             echo "JWT_SECRET_KEY=${JWT_SECRET_KEY}" >> .product.env
                             echo "JWT_REFRESH_SECRET_KEY=${JWT_REFRESH_SECRET_KEY}" >> .product.env
                             echo "JWT_ACCESS_EXPIRATION_TIME=${JWT_ACCESS_EXPIRATION_TIME}" >> .product.env

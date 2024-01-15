@@ -208,22 +208,22 @@ export class AuthService {
   }
 
   async createKakaoUser(kakaoUser, transactionManager) {
-    const { providerId, name, email } = kakaoUser;
+    const { providerId, email } = kakaoUser;
     const newUser = new UserEntity();
     newUser.providerType = ProviderType.kakao;
     newUser.providerId = providerId;
-    newUser.name = name;
+    newUser.name = email.substring(0, email.indexOf('@'));
     newUser.email = email;
     const user = await transactionManager.save(newUser);
     return user;
   }
 
   async createNaverUser(naverUser, transactionManager) {
-    const { providerId, name, email } = naverUser;
+    const { providerId, email } = naverUser;
     const newUser = new UserEntity();
     newUser.providerType = ProviderType.naver;
     newUser.providerId = providerId;
-    newUser.name = name;
+    newUser.name = email.substring(0, email.indexOf('@'));
     newUser.email = email;
     const user = await transactionManager.save(newUser);
     return user;
