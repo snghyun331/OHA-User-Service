@@ -15,6 +15,7 @@ import { GetUser, GetUserProviderId, GetUserId } from 'src/utils/decorators/get-
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
 import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
 import { KakaoAuthGuard } from './guards/kakao-auth.guard';
+import { NaverAuthGuard } from './guards/naver-auth.guard';
 
 @ApiTags('AUTH')
 @Controller('api/auth')
@@ -91,6 +92,29 @@ export class AuthController {
   ): Promise<{ message: string; result: any }> {
     const { type, accessToken, accessOption, refreshToken, refreshOption } =
       await this.authService.kakaoRegisterOrLogin(kakaoUser, transactionManager);
+    res.cookie('Access-Token', accessToken, accessOption);
+    res.cookie('Refresh-Token', refreshToken, refreshOption);
+
+    const result = { type, accessToken, refreshToken };
+    return { message: '로그인 성공했습니다', result };
+  }
+
+  @UseGuards(NaverAuthGuard)
+  @Get('naver/login')
+  async naverLogin(): Promise<void> {}
+
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(NaverAuthGuard)
+  @Get('naver/callback')
+  async naverCallback(
+    @TransactionManager() transactionManager,
+    @GetUser() naverUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string; result: any }> {
+    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.naverRegiserOrLogin(
+      naverUser,
+      transactionManager,
+    );
     res.cookie('Access-Token', accessToken, accessOption);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 

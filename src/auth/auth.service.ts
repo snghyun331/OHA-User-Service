@@ -65,6 +65,29 @@ export class AuthService {
     }
   }
 
+  async naverRegiserOrLogin(naverUser, transactionManager: EntityManager) {
+    try {
+      let type;
+      let result;
+      const { providerId } = naverUser;
+      const user = await this.usersRepository.findOne({ where: { providerType: ProviderType.naver, providerId } });
+      if (!user) {
+        // 새로운 회원 가입&로그인
+        const newUser = await this.createNaverUser(naverUser, transactionManager);
+        result = await this.naverLogin(newUser, transactionManager);
+        type = 'new';
+      } else {
+        // 기존 회원 로그인
+        result = await this.naverLogin(user, transactionManager);
+        type = 'exist';
+      }
+      return { type: type, ...result };
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
   async checkIfRefreshTokenMatches(refreshToken: string, userId: number) {
     try {
       const user = await this.usersRepository.findOne({ where: { userId } });
@@ -160,6 +183,19 @@ export class AuthService {
     return result;
   }
 
+  private async naverLogin(user, transactionManager) {
+    const [accessTokenResult, refreshTokenResult] = await Promise.all([
+      this.getCookieWithAccessToken(user.userId, user.providerId),
+      this.getCookieWithRefreshToken(user.userId, user.providerId),
+    ]);
+    const { accessToken, ...accessOption } = accessTokenResult;
+    const { refreshToken, ...refreshOption } = refreshTokenResult;
+    const hashedRF = await bcrypt.hash(refreshToken, SALT_ROUND);
+    await transactionManager.update(UserEntity, user.userId, { hashedRF });
+    const result = { accessToken, accessOption, refreshToken, refreshOption };
+    return result;
+  }
+
   async createGoogleUser(googleUser, transactionManager) {
     const { providerId, email } = googleUser;
     const newUser = new UserEntity();
@@ -175,6 +211,17 @@ export class AuthService {
     const { providerId, name, email } = kakaoUser;
     const newUser = new UserEntity();
     newUser.providerType = ProviderType.kakao;
+    newUser.providerId = providerId;
+    newUser.name = name;
+    newUser.email = email;
+    const user = await transactionManager.save(newUser);
+    return user;
+  }
+
+  async createNaverUser(naverUser, transactionManager) {
+    const { providerId, name, email } = naverUser;
+    const newUser = new UserEntity();
+    newUser.providerType = ProviderType.naver;
     newUser.providerId = providerId;
     newUser.name = name;
     newUser.email = email;

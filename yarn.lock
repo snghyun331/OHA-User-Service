@@ -4571,7 +4571,14 @@ passport-kakao@^1.0.1:
     passport-oauth2 "~1.1.2"
     pkginfo "~0.3.0"
 
-passport-oauth2@1.x.x:
+passport-naver-v2@^2.0.8:
+  version "2.0.8"
+  resolved "https://registry.yarnpkg.com/passport-naver-v2/-/passport-naver-v2-2.0.8.tgz#db552aec4aa843bef7c18a10e871dc4431c1f918"
+  integrity sha512-CA0u+aA4K4Zf5e3dSd47agOS69ULOdBGei7CZY2BN1cEbLnhnc6OalFPvnXLuEKT8I4IuGwvh3EBZCST2FoI+A==
+  dependencies:
+    passport-oauth2 "^1.5.0"
+
+passport-oauth2@1.x.x, passport-oauth2@^1.5.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/passport-oauth2/-/passport-oauth2-1.7.0.tgz#5c4766c8531ac45ffe9ec2c09de9809e2c841fc4"
   integrity sha512-j2gf34szdTF2Onw3+76alNnaAExlUmHvkc7cL+cmaS5NzHzDP/BvFHJruueQ9XAeNOdpI+CH+PWid8RA7KCwAQ==
