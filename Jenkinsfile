@@ -20,7 +20,7 @@ pipeline {
     }
 
     stages {
-        stage('clone') {
+        stage('Clone') {
             steps {
                 echo 'Cloning dev.................'
                 checkout scmGit(branches: [[name: '*/dev']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/O-H-A/OHA-User-Service.git']])
