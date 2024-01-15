@@ -11,9 +11,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { GetUser, GetUserGoogleId, GetUserId } from 'src/utils/decorators/get-user.decorator';
+import { GetUser, GetUserProviderId, GetUserId } from 'src/utils/decorators/get-user.decorator';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
 import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
+import { KakaoAuthGuard } from './guards/kakao-auth.guard';
 
 @ApiTags('AUTH')
 @Controller('api/auth')
@@ -45,11 +46,11 @@ export class AuthController {
   @Get('google/callback')
   async googleCallback(
     @TransactionManager() transactionManager,
-    @GetUser() user,
+    @GetUser() googleUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const { type, accessToken, accessOption, refreshToken, refreshOption } =
-      await this.authService.googleRegisterOrLogin(user, transactionManager);
+      await this.authService.googleRegisterOrLogin(googleUser, transactionManager);
 
     res.cookie('Access-Token', accessToken, accessOption);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
@@ -67,12 +68,33 @@ export class AuthController {
   @Get('refresh')
   async refreshAccessToken(
     @GetUserId() userId,
-    @GetUserGoogleId() googleId,
+    @GetUserProviderId() googleId,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const { accessToken, ...accessOption } = await this.authService.getCookieWithAccessToken(userId, googleId);
     res.cookie('Access-Token', accessToken, accessOption);
     const result = { accessToken };
     return { message: '성공적으로 access 토큰이 갱신되었습니다', result };
+  }
+
+  @UseGuards(KakaoAuthGuard)
+  @Get('kakao/login')
+  async kakaoLogin(): Promise<void> {}
+
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(KakaoAuthGuard)
+  @Get('kakao/callback')
+  async kakaoCallback(
+    @TransactionManager() transactionManager,
+    @GetUser() kakaoUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string; result: any }> {
+    const { type, accessToken, accessOption, refreshToken, refreshOption } =
+      await this.authService.kakaoRegisterOrLogin(kakaoUser, transactionManager);
+    res.cookie('Access-Token', accessToken, accessOption);
+    res.cookie('Refresh-Token', refreshToken, refreshOption);
+
+    const result = { type, accessToken, refreshToken };
+    return { message: '로그인 성공했습니다', result };
   }
 }

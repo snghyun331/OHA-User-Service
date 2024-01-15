@@ -10,7 +10,7 @@ export const GetUserId = createParamDecorator((data, ctx: ExecutionContext): str
   return req.user.userId;
 });
 
-export const GetUserGoogleId = createParamDecorator((data, ctx: ExecutionContext): string => {
+export const GetUserProviderId = createParamDecorator((data, ctx: ExecutionContext): string => {
   const req = ctx.switchToHttp().getRequest();
-  return req.user.googleProviderId;
+  return req.user.providerId;
 });

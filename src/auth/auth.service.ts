@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { OAuthType } from 'src/users/types/user.enum';
+import { ProviderType } from 'src/users/types/user.enum';
 import { SALT_ROUND } from 'src/utils/constant';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class AuthService {
       let type;
       let result;
       const { providerId } = googleUser;
-      const user = await this.usersRepository.findOne({ where: { googleProviderId: providerId } });
+      const user = await this.usersRepository.findOne({ where: { providerType: ProviderType.google, providerId } });
       if (!user) {
         // 새로운 회원 가입&로그인
         const newUser = await this.createGoogleUser(googleUser, transactionManager);
@@ -33,6 +33,29 @@ export class AuthService {
       } else {
         // 기존 회원 로그인
         result = await this.googleLogin(user, transactionManager);
+        type = 'exist';
+      }
+      return { type: type, ...result };
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async kakaoRegisterOrLogin(kakaoUser, transactionManager: EntityManager) {
+    try {
+      let type;
+      let result;
+      const { providerId } = kakaoUser;
+      const user = await this.usersRepository.findOne({ where: { providerType: ProviderType.kakao, providerId } });
+      if (!user) {
+        // 새로운 회원 가입&로그인
+        const newUser = await this.createKakaoUser(kakaoUser, transactionManager);
+        result = await this.kakaoLogin(newUser, transactionManager);
+        type = 'new';
+      } else {
+        // 기존 회원 로그인
+        result = await this.kakaoLogin(user, transactionManager);
         type = 'exist';
       }
       return { type: type, ...result };
@@ -60,13 +83,13 @@ export class AuthService {
     }
   }
 
-  async getCookieWithAccessToken(userId: number, googleProviderId: string) {
+  async getCookieWithAccessToken(userId: number, providerId: string) {
     try {
       const user = this.usersRepository.findOne({ where: { userId } });
       if (!user) {
         throw new ForbiddenException('접근 권한이 없습니다.');
       }
-      const payload = { userId, googleProviderId };
+      const payload = { userId, providerId };
       const token = this.jwtService.sign(payload, {
         secret: this.configService.get('JWT_SECRET_KEY'),
         expiresIn: +this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
@@ -85,13 +108,13 @@ export class AuthService {
     }
   }
 
-  async getCookieWithRefreshToken(userId: number, googleProviderId: string) {
+  async getCookieWithRefreshToken(userId: number, providerId: string) {
     try {
       const user = this.usersRepository.findOne({ where: { userId } });
       if (!user) {
         throw new ForbiddenException('접근 권한이 없습니다.');
       }
-      const payload = { userId, googleProviderId };
+      const payload = { userId, providerId };
       const token = this.jwtService.sign(payload, {
         secret: this.configService.get('JWT_REFRESH_SECRET_KEY'),
         expiresIn: +this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
@@ -111,10 +134,23 @@ export class AuthService {
     }
   }
 
-  async googleLogin(user, transactionManager) {
+  private async googleLogin(user, transactionManager) {
     const [accessTokenResult, refreshTokenResult] = await Promise.all([
-      this.getCookieWithAccessToken(user.userId, user.googleProviderId),
-      this.getCookieWithRefreshToken(user.userId, user.googleProviderId),
+      this.getCookieWithAccessToken(user.userId, user.providerId),
+      this.getCookieWithRefreshToken(user.userId, user.providerId),
+    ]);
+    const { accessToken, ...accessOption } = accessTokenResult;
+    const { refreshToken, ...refreshOption } = refreshTokenResult;
+    const hashedRF = await bcrypt.hash(refreshToken, SALT_ROUND);
+    await transactionManager.update(UserEntity, user.userId, { hashedRF });
+    const result = { accessToken, accessOption, refreshToken, refreshOption };
+    return result;
+  }
+
+  private async kakaoLogin(user, transactionManager) {
+    const [accessTokenResult, refreshTokenResult] = await Promise.all([
+      this.getCookieWithAccessToken(user.userId, user.providerId),
+      this.getCookieWithRefreshToken(user.userId, user.providerId),
     ]);
     const { accessToken, ...accessOption } = accessTokenResult;
     const { refreshToken, ...refreshOption } = refreshTokenResult;
@@ -127,10 +163,21 @@ export class AuthService {
   async createGoogleUser(googleUser, transactionManager) {
     const { providerId, email } = googleUser;
     const newUser = new UserEntity();
-    newUser.oauthType = OAuthType.google;
-    newUser.googleProviderId = providerId;
+    newUser.providerType = ProviderType.google;
+    newUser.providerId = providerId;
     newUser.email = email;
     newUser.name = email.substring(0, email.indexOf('@'));
+    const user = await transactionManager.save(newUser);
+    return user;
+  }
+
+  async createKakaoUser(kakaoUser, transactionManager) {
+    const { providerId, name, email } = kakaoUser;
+    const newUser = new UserEntity();
+    newUser.providerType = ProviderType.kakao;
+    newUser.providerId = providerId;
+    newUser.name = name;
+    newUser.email = email;
     const user = await transactionManager.save(newUser);
     return user;
   }

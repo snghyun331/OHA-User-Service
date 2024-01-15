@@ -1,19 +1,19 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Unique } from 'typeorm';
-import { OAuthType } from '../types/user.enum';
+import { ProviderType } from '../types/user.enum';
 
 @Entity('User')
-// @Unique(['name'])
+@Unique(['name'])
 export class UserEntity {
   @PrimaryGeneratedColumn()
   userId: number;
 
-  @Column({ type: 'enum', enum: OAuthType, nullable: false })
-  oauthType: OAuthType;
-
-  @Column({ type: 'varchar', nullable: true })
-  googleProviderId: string;
+  @Column({ type: 'enum', enum: ProviderType, nullable: false })
+  providerType: ProviderType;
 
   @Column({ type: 'varchar', nullable: false })
+  providerId: string;
+
+  @Column({ type: 'varchar', nullable: true })
   email: string;
 
   @Column({ type: 'varchar', nullable: true })

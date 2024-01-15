@@ -8,10 +8,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt.refresh.strategy';
+import { KakaoStrategy } from './strategies/kakao.strategy';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity]), PassportModule, JwtModule.register({})],
   controllers: [AuthController],
-  providers: [AuthService, Logger, GoogleStrategy, JwtStrategy, JwtRefreshStrategy],
+  providers: [AuthService, Logger, GoogleStrategy, JwtStrategy, JwtRefreshStrategy, KakaoStrategy],
 })
 export class AuthModule {}
