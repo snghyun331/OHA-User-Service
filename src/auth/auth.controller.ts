@@ -61,7 +61,6 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '엑세스 토큰 리프레시(엑세스 토큰이 만료되었을 경우 해당 API로 엑세스 토큰 갱신' })
   @ApiResponse({ status: 200, description: '엑세스 토큰 갱신 성공' })
-  @ApiResponse({ status: 400, description: 'Refresh Token 없음' })
   @ApiResponse({ status: 400, description: 'Refresh Token이 없거나 형식에 어긋날 때' })
   @ApiResponse({ status: 401, description: 'Refresh Token 만료' })
   @UseGuards(JwtRefreshAuthGuard)
