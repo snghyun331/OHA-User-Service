@@ -8,8 +8,7 @@ import { EurekaModule } from 'nestjs-eureka';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         service: {
-          // name: `user-service${configService.get('NODE_ENV') === 'dev' ? '-dev' : ''}`,
-          name: 'user-service',
+          name: `user-service${configService.get('NODE_ENV') === 'prod' ? '-dev' : ''}`,
           port: +configService.get('PORT1') || +configService.get('PORT2'),
         },
         eureka: {
