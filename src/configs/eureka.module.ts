@@ -13,7 +13,7 @@ import { EurekaModule } from 'nestjs-eureka';
           // name: `user-service${env === 'prod' ? '-dev' : ''}`,
           name: 'user-service-dev',
           port: +configService.get('PORT1') || +configService.get('PORT2'),
-          hostname: +configService.get('HOST'),
+          host: configService.get('HOST'),
         },
         eureka: {
           host: configService.get('Eureka_HOST'),
