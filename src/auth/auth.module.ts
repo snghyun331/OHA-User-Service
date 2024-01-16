@@ -10,10 +10,20 @@ import { JwtStrategy } from './strategies/jwt.access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt.refresh.strategy';
 import { KakaoStrategy } from './strategies/kakao.strategy';
 import { NaverStrategy } from './strategies/naver.strategy';
+import { TokenService } from './token.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity]), PassportModule, JwtModule.register({})],
   controllers: [AuthController],
-  providers: [AuthService, Logger, GoogleStrategy, JwtStrategy, JwtRefreshStrategy, KakaoStrategy, NaverStrategy],
+  providers: [
+    AuthService,
+    TokenService,
+    Logger,
+    GoogleStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    KakaoStrategy,
+    NaverStrategy,
+  ],
 })
 export class AuthModule {}

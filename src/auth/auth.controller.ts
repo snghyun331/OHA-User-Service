@@ -16,6 +16,7 @@ import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor
 import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
 import { KakaoAuthGuard } from './guards/kakao-auth.guard';
 import { NaverAuthGuard } from './guards/naver-auth.guard';
+import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
 
 @ApiTags('AUTH')
 @Controller('api/auth')
@@ -47,12 +48,92 @@ export class AuthController {
   @Get('google/callback')
   async googleCallback(
     @TransactionManager() transactionManager,
-    @GetUser() googleUser,
+    @GetUser() googleUser: GoogleUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, accessToken, accessOption, refreshToken, refreshOption } =
-      await this.authService.googleRegisterOrLogin(googleUser, transactionManager);
+    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
+      googleUser,
+      transactionManager,
+    );
 
+    res.cookie('Access-Token', accessToken, accessOption);
+    res.cookie('Refresh-Token', refreshToken, refreshOption);
+
+    const result = { type, accessToken, refreshToken };
+    return { message: '로그인 성공했습니다', result };
+  }
+
+  @ApiOperation({ summary: '카카오 로그인' })
+  @ApiCreatedResponse({
+    description: 'type: new -> 새로운 회원, exist -> 기존 회원',
+    schema: {
+      example: {
+        statusCode: 200,
+        message: '로그인 성공했습니다',
+        data: {
+          type: 'exist',
+          accessToken: 'e~',
+          refreshToken: 'e~',
+        },
+      },
+    },
+  })
+  @UseGuards(KakaoAuthGuard)
+  @Get('kakao/login')
+  async kakaoLogin(): Promise<void> {}
+
+  @ApiExcludeEndpoint()
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(KakaoAuthGuard)
+  @Get('kakao/callback')
+  async kakaoCallback(
+    @TransactionManager() transactionManager,
+    @GetUser() kakaoUser: KakaoUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string; result: any }> {
+    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
+      kakaoUser,
+      transactionManager,
+    );
+    res.cookie('Access-Token', accessToken, accessOption);
+    res.cookie('Refresh-Token', refreshToken, refreshOption);
+
+    const result = { type, accessToken, refreshToken };
+    return { message: '로그인 성공했습니다', result };
+  }
+
+  @ApiOperation({ summary: '네이버 로그인' })
+  @ApiCreatedResponse({
+    description: 'type: new -> 새로운 회원, exist -> 기존 회원',
+    schema: {
+      example: {
+        statusCode: 200,
+        message: '로그인 성공했습니다',
+        data: {
+          type: 'exist',
+          accessToken: 'e~',
+          refreshToken: 'e~',
+        },
+      },
+    },
+  })
+  @UseGuards(NaverAuthGuard)
+  @Get('naver/login')
+  async naverLogin(): Promise<void> {}
+
+  @ApiExcludeEndpoint()
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(NaverAuthGuard)
+  @Get('naver/callback')
+  async naverCallback(
+    @TransactionManager() transactionManager,
+    @GetUser() naverUser: NaverUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string; result: any }> {
+    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
+      naverUser,
+      transactionManager,
+    );
     res.cookie('Access-Token', accessToken, accessOption);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
@@ -76,49 +157,5 @@ export class AuthController {
     res.cookie('Access-Token', accessToken, accessOption);
     const result = { accessToken };
     return { message: '성공적으로 access 토큰이 갱신되었습니다', result };
-  }
-
-  @UseGuards(KakaoAuthGuard)
-  @Get('kakao/login')
-  async kakaoLogin(): Promise<void> {}
-
-  @UseInterceptors(TransactionInterceptor)
-  @UseGuards(KakaoAuthGuard)
-  @Get('kakao/callback')
-  async kakaoCallback(
-    @TransactionManager() transactionManager,
-    @GetUser() kakaoUser,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ message: string; result: any }> {
-    const { type, accessToken, accessOption, refreshToken, refreshOption } =
-      await this.authService.kakaoRegisterOrLogin(kakaoUser, transactionManager);
-    res.cookie('Access-Token', accessToken, accessOption);
-    res.cookie('Refresh-Token', refreshToken, refreshOption);
-
-    const result = { type, accessToken, refreshToken };
-    return { message: '로그인 성공했습니다', result };
-  }
-
-  @UseGuards(NaverAuthGuard)
-  @Get('naver/login')
-  async naverLogin(): Promise<void> {}
-
-  @UseInterceptors(TransactionInterceptor)
-  @UseGuards(NaverAuthGuard)
-  @Get('naver/callback')
-  async naverCallback(
-    @TransactionManager() transactionManager,
-    @GetUser() naverUser,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ message: string; result: any }> {
-    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.naverRegiserOrLogin(
-      naverUser,
-      transactionManager,
-    );
-    res.cookie('Access-Token', accessToken, accessOption);
-    res.cookie('Refresh-Token', refreshToken, refreshOption);
-
-    const result = { type, accessToken, refreshToken };
-    return { message: '로그인 성공했습니다', result };
   }
 }
