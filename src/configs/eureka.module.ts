@@ -2,13 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EurekaModule } from 'nestjs-eureka';
 
+const env = process.env.NODE_ENV;
+
 @Module({
   imports: [
     EurekaModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         service: {
-          name: `user-service${configService.get('NODE_ENV') === 'prod' ? '-dev' : ''}`,
+          name: `user-service${env === 'prod' ? '-dev' : ''}`,
           port: +configService.get('PORT1') || +configService.get('PORT2'),
         },
         eureka: {
