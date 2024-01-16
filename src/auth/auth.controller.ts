@@ -1,4 +1,4 @@
-import { Controller, Get, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, HttpCode, HttpStatus, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import {
@@ -17,6 +17,7 @@ import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
 import { KakaoAuthGuard } from './guards/kakao-auth.guard';
 import { NaverAuthGuard } from './guards/naver-auth.guard';
 import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('AUTH')
 @Controller('api/auth')
@@ -141,7 +142,7 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('refresh-token')
   @ApiOperation({ summary: '엑세스 토큰 리프레시(엑세스 토큰이 만료되었을 경우 해당 API로 엑세스 토큰 갱신' })
   @ApiResponse({ status: 200, description: '엑세스 토큰 갱신 성공' })
   @ApiResponse({ status: 400, description: 'Refresh Token이 없거나 형식에 어긋날 때' })
@@ -149,13 +150,30 @@ export class AuthController {
   @UseGuards(JwtRefreshAuthGuard)
   @Get('refresh')
   async refreshAccessToken(
-    @GetUserId() userId,
-    @GetUserProviderId() googleId,
+    @GetUserId() userId: number,
+    @GetUserProviderId() googleId: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const { accessToken, ...accessOption } = await this.authService.getCookieWithAccessToken(userId, googleId);
     res.cookie('Access-Token', accessToken, accessOption);
     const result = { accessToken };
     return { message: '성공적으로 access 토큰이 갱신되었습니다', result };
+  }
+
+  @ApiOperation({ summary: '로그아웃' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TransactionInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async logout(
+    @TransactionManager() transactionManager,
+    @GetUserId() userId: number,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string }> {
+    const { accessOption, refreshOption } = await this.authService.socialLogout(userId, transactionManager);
+    res.cookie('Access', '', accessOption);
+    res.cookie('Refresh', '', refreshOption);
+    return { message: '성공적으로 로그아웃 되었습니다.' };
   }
 }

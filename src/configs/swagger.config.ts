@@ -11,10 +11,19 @@ export class SwaggerConfig {
         {
           type: 'http',
           scheme: 'bearer',
-          name: 'Token',
+          name: 'AccessToken',
           in: 'header',
         },
         'access-token',
+      )
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          name: 'RefreshToken',
+          in: 'header',
+        },
+        'refresh-token',
       )
       .build();
   }

@@ -39,6 +39,17 @@ export class AuthService {
     }
   }
 
+  async socialLogout(userId: number, transactionManager: EntityManager) {
+    try {
+      await transactionManager.update(UserEntity, userId, { hashedRF: null });
+      const result = await this.tokenService.removeCookiesForLogout();
+      return result;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
   async checkIfRefreshTokenMatches(refreshToken: string, userId: number) {
     try {
       const user = await this.usersRepository.findOne({ where: { userId } });

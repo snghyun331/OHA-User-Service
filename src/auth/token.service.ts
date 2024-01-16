@@ -54,4 +54,21 @@ export class TokenService {
     const result = await bcrypt.compare(refreshToken, hashedRF);
     return result;
   }
+
+  async removeCookiesForLogout() {
+    return {
+      accessOption: {
+        domain: this.configService.get('HOST'),
+        path: '/',
+        httpOnly: true,
+        maxAge: 0,
+      },
+      refreshOption: {
+        domain: this.configService.get('HOST'),
+        path: '/',
+        httpOnly: true,
+        maxAge: 0,
+      },
+    };
+  }
 }

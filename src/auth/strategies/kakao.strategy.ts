@@ -15,11 +15,12 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
+    const provider = profile.provider;
     const id = profile._json.id;
     const nickname = profile._json.properties.nickname;
-    const email = profile._json.kakao_account.email || null;
+    const email = profile._json.kakao_account.email;
     return {
-      provider: 'kakao',
+      provider,
       providerId: id.toString(),
       name: nickname,
       email: email,
