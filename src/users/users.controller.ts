@@ -8,7 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { GetUserId } from 'src/utils/decorators/get-user.decorator';
 
 @ApiTags('USER')
-@Controller('api/users')
+@Controller('api/user')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
