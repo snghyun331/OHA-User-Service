@@ -20,6 +20,7 @@ export class AuthService {
     try {
       let type: string;
       let result: any;
+      let isNameExist: boolean;
       const { providerId } = socialUser;
       const providerType = await this.getProviderType(socialUser);
       const user = await this.usersRepository.findOne({ where: { providerType, providerId } });
@@ -28,11 +29,17 @@ export class AuthService {
         const newUser = await this.createUser(providerType, socialUser, transactionManager);
         result = await this.login(newUser, transactionManager);
         type = 'new';
+        isNameExist = false;
       } else {
         result = await this.login(user, transactionManager);
+        if (user.name === null) {
+          isNameExist = false;
+        } else {
+          isNameExist = true;
+        }
         type = 'exist';
       }
-      return { type, ...result };
+      return { type, isNameExist, ...result };
     } catch (e) {
       this.logger.error(e);
       throw e;
@@ -93,7 +100,7 @@ export class AuthService {
     newUser.providerType = providerType;
     newUser.providerId = providerId;
     newUser.email = email;
-    newUser.name = email.substring(0, email.indexOf('@'));
+
     const result = await transactionManager.save(newUser);
     return result;
   }

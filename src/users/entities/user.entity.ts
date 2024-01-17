@@ -1,8 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Unique } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ProviderType } from '../types/user.enum';
 
 @Entity('User')
-@Unique(['name'])
 export class UserEntity {
   @PrimaryGeneratedColumn()
   userId: number;
@@ -19,7 +18,7 @@ export class UserEntity {
   @Column({ type: 'varchar', nullable: true })
   hashedRF: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: true })
   name: string;
 
   @Column({ type: 'varchar', nullable: true })

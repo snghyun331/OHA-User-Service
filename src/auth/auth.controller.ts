@@ -52,15 +52,13 @@ export class AuthController {
     @GetUser() googleUser: GoogleUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
-      googleUser,
-      transactionManager,
-    );
+    const { type, isNameExist, accessToken, accessOption, refreshToken, refreshOption } =
+      await this.authService.handleSocialLogin(googleUser, transactionManager);
 
     res.cookie('Access-Token', accessToken, accessOption);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, accessToken, refreshToken };
+    const result = { type, isNameExist, accessToken, refreshToken };
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -92,14 +90,12 @@ export class AuthController {
     @GetUser() kakaoUser: KakaoUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
-      kakaoUser,
-      transactionManager,
-    );
+    const { type, isNameExist, accessToken, accessOption, refreshToken, refreshOption } =
+      await this.authService.handleSocialLogin(kakaoUser, transactionManager);
     res.cookie('Access-Token', accessToken, accessOption);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, accessToken, refreshToken };
+    const result = { type, isNameExist, accessToken, refreshToken };
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -131,14 +127,12 @@ export class AuthController {
     @GetUser() naverUser: NaverUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, accessToken, accessOption, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
-      naverUser,
-      transactionManager,
-    );
+    const { type, isNameExist, accessToken, accessOption, refreshToken, refreshOption } =
+      await this.authService.handleSocialLogin(naverUser, transactionManager);
     res.cookie('Access-Token', accessToken, accessOption);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, accessToken, refreshToken };
+    const result = { type, isNameExist, accessToken, refreshToken };
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -162,6 +156,7 @@ export class AuthController {
 
   @ApiOperation({ summary: '로그아웃' })
   @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: '로그아웃 성공' })
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @HttpCode(HttpStatus.OK)
