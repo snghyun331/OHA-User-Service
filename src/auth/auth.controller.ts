@@ -33,6 +33,7 @@ export class AuthController {
         message: '로그인 성공했습니다',
         data: {
           type: 'exist',
+          isNameExist: 'false',
           accessToken: 'e~',
           refreshToken: 'e~',
         },
@@ -55,7 +56,7 @@ export class AuthController {
     const { type, isNameExist, accessToken, accessOption, refreshToken, refreshOption } =
       await this.authService.handleSocialLogin(googleUser, transactionManager);
 
-    res.cookie('Access-Token', accessToken, accessOption);
+    res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
     const result = { type, isNameExist, accessToken, refreshToken };
@@ -92,7 +93,7 @@ export class AuthController {
   ): Promise<{ message: string; result: any }> {
     const { type, isNameExist, accessToken, accessOption, refreshToken, refreshOption } =
       await this.authService.handleSocialLogin(kakaoUser, transactionManager);
-    res.cookie('Access-Token', accessToken, accessOption);
+    res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
     const result = { type, isNameExist, accessToken, refreshToken };
@@ -129,7 +130,7 @@ export class AuthController {
   ): Promise<{ message: string; result: any }> {
     const { type, isNameExist, accessToken, accessOption, refreshToken, refreshOption } =
       await this.authService.handleSocialLogin(naverUser, transactionManager);
-    res.cookie('Access-Token', accessToken, accessOption);
+    res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
     const result = { type, isNameExist, accessToken, refreshToken };
@@ -149,7 +150,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const { accessToken, ...accessOption } = await this.authService.getCookieWithAccessToken(userId, googleId);
-    res.cookie('Access-Token', accessToken, accessOption);
+    res.header('Authorization', `Bearer ${accessToken}`);
     const result = { accessToken };
     return { message: '성공적으로 access 토큰이 갱신되었습니다', result };
   }
@@ -167,8 +168,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string }> {
     const { accessOption, refreshOption } = await this.authService.socialLogout(userId, transactionManager);
-    res.cookie('Access', '', accessOption);
-    res.cookie('Refresh', '', refreshOption);
+    res.cookie('Access-Token', '', accessOption);
+    res.cookie('Refresh-Token', '', refreshOption);
     return { message: '성공적으로 로그아웃 되었습니다.' };
   }
 }
