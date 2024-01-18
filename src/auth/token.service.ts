@@ -20,10 +20,7 @@ export class TokenService {
     });
     const result = {
       accessToken: token,
-      domain: this.configService.get('HOST'),
-      path: '/',
       httpOnly: true,
-      maxAge: +this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
     };
     return result;
   }
@@ -37,10 +34,8 @@ export class TokenService {
 
     const result = {
       refreshToken: token,
-      // domain: this.configService.get('HOST'),
-      // path: '/',
+      path: '/api/auth/refresh',
       httpOnly: true,
-      // maxAge: +this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     };
     return result;
   }
@@ -57,16 +52,8 @@ export class TokenService {
 
   async removeCookiesForLogout() {
     return {
-      accessOption: {
-        domain: this.configService.get('HOST'),
-        path: '/',
-        httpOnly: true,
-        maxAge: 0,
-      },
       refreshOption: {
-        domain: this.configService.get('HOST'),
-        path: '/',
-        httpOnly: true,
+        path: '/api/auth/refresh',
         maxAge: 0,
       },
     };
