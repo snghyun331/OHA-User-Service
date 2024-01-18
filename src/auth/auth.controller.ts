@@ -57,7 +57,7 @@ export class AuthController {
       await this.authService.handleSocialLogin(googleUser, transactionManager);
 
     res.header('Authorization', `Bearer ${accessToken}`);
-    res.cookie('Refresh-Token', refreshToken, refreshOption);
+    res.cookie('Refresh-Token', refreshToken, { httpOnly: true });
 
     const result = { type, isNameExist, accessToken, refreshToken };
     return { message: '로그인 성공했습니다', result };

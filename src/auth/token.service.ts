@@ -37,10 +37,10 @@ export class TokenService {
 
     const result = {
       refreshToken: token,
-      domain: this.configService.get('HOST'),
-      path: '/',
+      // domain: this.configService.get('HOST'),
+      // path: '/',
       httpOnly: true,
-      maxAge: +this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+      // maxAge: +this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     };
     return result;
   }
