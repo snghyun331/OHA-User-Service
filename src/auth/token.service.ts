@@ -34,7 +34,7 @@ export class TokenService {
 
     const result = {
       refreshToken: token,
-      path: '/api/auth/refresh',
+      path: 'api/auth/refresh',
       httpOnly: true,
     };
     return result;
@@ -53,7 +53,7 @@ export class TokenService {
   async removeCookiesForLogout() {
     return {
       refreshOption: {
-        path: '/api/auth/refresh',
+        path: 'api/auth/refresh',
         maxAge: 0,
       },
     };
