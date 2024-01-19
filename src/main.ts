@@ -5,6 +5,7 @@ import * as morgan from 'morgan';
 import { TransformInterceptor } from './interceptors/response.interceptor';
 import { SwaggerConfig } from './configs/swagger.config';
 import { SwaggerModule } from '@nestjs/swagger';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 const port = process.env.PORT1 || process.env.PORT2;
 
@@ -12,6 +13,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: winstonLogger,
   });
+
+  // cors settings
+  const corsOptions: CorsOptions = {
+    credentials: true,
+  };
+  app.enableCors(corsOptions);
 
   // app.use(morgan('combined'));  // product
   app.use(morgan('dev')); // dev
