@@ -1,4 +1,4 @@
-import { Controller, Get, Post, HttpCode, HttpStatus, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, HttpCode, HttpStatus, Res, UseGuards, UseInterceptors, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import {
@@ -176,5 +176,22 @@ export class AuthController {
     const { refreshOption } = await this.authService.socialLogout(userId, transactionManager);
     res.cookie('Refresh-Token', '', refreshOption);
     return { message: '성공적으로 로그아웃 되었습니다.' };
+  }
+
+  @ApiOperation({ summary: '회원탈퇴' })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: '회원탈퇴 성공' })
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TransactionInterceptor)
+  @Delete('withdraw')
+  async userWithdraw(
+    @TransactionManager() transactionManager,
+    @GetUserId() userId: number,
+    @GetUserProviderId() providerId: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string }> {
+    const { refreshOption } = await this.authService.deleteUserAndLogout(userId, providerId, transactionManager);
+    res.cookie('Refresh-Token', '', refreshOption);
+    return { message: '성공적으로 탈퇴되었습니다' };
   }
 }

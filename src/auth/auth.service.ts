@@ -1,4 +1,12 @@
-import { Inject, Injectable, Logger, LoggerService, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
@@ -50,6 +58,21 @@ export class AuthService {
     try {
       await transactionManager.update(UserEntity, userId, { hashedRF: null });
       const result = await this.tokenService.removeCookiesForLogout();
+      return result;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async deleteUserAndLogout(userId: number, providerId: string, transactionManager: EntityManager) {
+    try {
+      const user = this.usersRepository.findOne({ where: { userId, providerId } });
+      if (!user) {
+        throw new NotFoundException('존재하지 않는 사용자입니다');
+      }
+      const result = await this.tokenService.removeCookiesForLogout();
+      await transactionManager.delete(UserEntity, userId);
       return result;
     } catch (e) {
       this.logger.error(e);
