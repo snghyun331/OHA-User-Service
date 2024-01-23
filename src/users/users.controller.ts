@@ -1,4 +1,4 @@
-import { Body, Controller, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersService } from './users.service';
@@ -8,6 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { GetUserId } from 'src/utils/decorators/get-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { Response } from 'express';
 
 @ApiTags('USER')
 @Controller('api/user')
@@ -64,9 +65,15 @@ export class UsersController {
     @TransactionManager() transactionManager,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<{ message: string; result: any }> {
-    console.log(file);
     const result = await this.userService.uploadProfile(userId, file.filename);
     return { message: '성공적으로 프로필이 업데이트 되었습니다', result };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('uploads/:filename')
+  async getImage(@Param('filename') filename: string, @Res() res: Response): Promise<{ message: string }> {
+    res.sendFile(filename, { root: 'uploads' });
+    return { message: '이미지를 성공적으로 가져왔습니다' };
   }
 
   // @ApiOperation({ summary: '배경 사진 업데이트' })

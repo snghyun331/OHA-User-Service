@@ -10,6 +10,7 @@ import {
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -18,6 +19,7 @@ export class UsersService {
     private readonly logger: LoggerService,
     @InjectRepository(UserEntity)
     private usersRepository: Repository<UserEntity>,
+    private configService: ConfigService,
   ) {}
 
   async updateNickname(userId, updateNameDto, transactionManager) {
@@ -38,7 +40,9 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException('존재하지 않는 사용자입니다');
       }
-      const url = `http://localhost:3000/api/user/uploads/${filename}`;
+      const url = `http://${this.configService.get('HOST')}:${+this.configService.get(
+        'PORT1',
+      )}/api/user/uploads/${filename}`;
       const result = await this.usersRepository.update(userId, { profileUrl: url });
       if (result.affected === 0) {
         throw new BadRequestException('Profile update failed: Invalid input data');
