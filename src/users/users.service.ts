@@ -1,4 +1,12 @@
-import { ConflictException, Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,6 +26,24 @@ export class UsersService {
       await this.checkNicknameExists(name, userId);
       await transactionManager.update(UserEntity, userId, { name });
       return;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async uploadProfile(userId: number, filename: string) {
+    try {
+      const user = await this.usersRepository.findOne({ where: { userId } });
+      if (!user) {
+        throw new NotFoundException('존재하지 않는 사용자입니다');
+      }
+      const url = `http://localhost:3000/api/user/uploads/${filename}`;
+      const result = await this.usersRepository.update(userId, { profileUrl: url });
+      if (result.affected === 0) {
+        throw new BadRequestException('Profile update failed: Invalid input data');
+      }
+      return { imageUrl: url };
     } catch (e) {
       this.logger.error(e);
       throw e;
