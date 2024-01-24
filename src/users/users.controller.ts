@@ -105,12 +105,20 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'OK ' })
   @ApiResponse({ status: 404, description: '존재하지 않는 사용자' })
   @UseGuards(JwtAuthGuard)
-  @Get('me')
-  async readMyInfo(
+  @Get('getmyinfo')
+  async getMyInfo(
     @GetUserId() userId: number,
     @GetUserProviderId() providerId: string,
   ): Promise<{ message: string; result: any }> {
     const result = await this.userService.getUserInfo(userId, providerId);
     return { message: '내 정보를 성공적으로 가져왔습니다', result };
+  }
+
+  @ApiOperation({ summary: '모든 사용자 정보 조회' })
+  @ApiResponse({ status: 200, description: 'OK ' })
+  @Get('getallusers')
+  async getAllUsers(): Promise<{ message: string; result: any }> {
+    const result = await this.userService.getUsersInfo();
+    return { message: '모든 사용자 정보를 성공적으로 가져왔습니다', result };
   }
 }

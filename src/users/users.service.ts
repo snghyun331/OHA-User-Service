@@ -87,6 +87,15 @@ export class UsersService {
     }
   }
 
+  async getUsersInfo() {
+    try {
+      const allUsers = this.usersRepository.find({});
+      return allUsers;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
   private async checkNicknameExists(name: string, currentUserId: number) {
     const user = await this.usersRepository.findOne({ where: { name } });
     if (user && currentUserId !== user.userId) {
