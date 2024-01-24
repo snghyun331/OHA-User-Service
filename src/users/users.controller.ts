@@ -1,13 +1,14 @@
 import { Body, Controller, Get, Param, Put, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersService } from './users.service';
-import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { GetUserId, GetUserProviderId } from 'src/utils/decorators/get-user.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import {
+  GetUserId,
+  GetUserProviderId,
+  TransactionManager,
   ApiBearerAuthAccessToken,
   ApiBodyImageForm,
   ApiConsumesMultiForm,
@@ -18,8 +19,7 @@ import {
   ApiResponseErrorNotFound,
   ApiResponseSuccess,
   ApiTagUser,
-} from 'src/utils/decorators/swagger.decorators';
-import { ApiConsumes } from '@nestjs/swagger';
+} from 'src/utils/decorators';
 
 @ApiTagUser()
 @Controller('api/user')
@@ -45,7 +45,6 @@ export class UsersController {
 
   @ApiDescription('프로필 시잔 업데이트')
   @ApiBearerAuthAccessToken()
-  // @ApiConsumes('multipart/form-data')
   @ApiConsumesMultiForm()
   @ApiBodyImageForm('profileImage')
   @ApiResponseSuccess()

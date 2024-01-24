@@ -1,16 +1,14 @@
 import { Controller, Get, Post, HttpCode, HttpStatus, Res, UseGuards, UseInterceptors, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
-import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
-import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { GetUser, GetUserProviderId, GetUserId } from 'src/utils/decorators/get-user.decorator';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
-import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
-import { KakaoAuthGuard } from './guards/kakao-auth.guard';
-import { NaverAuthGuard } from './guards/naver-auth.guard';
 import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard, JwtRefreshAuthGuard, GoogleAuthGuard, KakaoAuthGuard, NaverAuthGuard } from './guards';
 import {
+  GetUser,
+  GetUserId,
+  GetUserProviderId,
+  TransactionManager,
   ApiTagAuth,
   ApiDescription,
   ApiResponseLoginSuccess,
@@ -20,7 +18,7 @@ import {
   ApiResponseErrorBadRequest,
   ApiResponseErrorUnauthorized,
   ApiBearerAuthAccessToken,
-} from 'src/utils/decorators/swagger.decorators';
+} from 'src/utils/decorators';
 
 @ApiTagAuth()
 @Controller('api/auth')
