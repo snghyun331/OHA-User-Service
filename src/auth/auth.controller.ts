@@ -1,50 +1,37 @@
-import { Controller, Get, Post, HttpCode, HttpStatus, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, HttpCode, HttpStatus, Res, UseGuards, UseInterceptors, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-  ApiResponse,
-  ApiCreatedResponse,
-  ApiExcludeEndpoint,
-} from '@nestjs/swagger';
-import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
-import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { GetUser, GetUserProviderId, GetUserId } from 'src/utils/decorators/get-user.decorator';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
-import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
-import { KakaoAuthGuard } from './guards/kakao-auth.guard';
-import { NaverAuthGuard } from './guards/naver-auth.guard';
 import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard, JwtRefreshAuthGuard, GoogleAuthGuard, KakaoAuthGuard, NaverAuthGuard } from './guards';
+import {
+  GetUser,
+  GetUserId,
+  GetUserProviderId,
+  TransactionManager,
+  ApiTagAuth,
+  ApiDescription,
+  ApiResponseLoginSuccess,
+  ApiExclude,
+  ApiBearerAuthRefreshToken,
+  ApiResponseSuccess,
+  ApiResponseErrorBadRequest,
+  ApiResponseErrorUnauthorized,
+  ApiBearerAuthAccessToken,
+} from 'src/utils/decorators';
 
-@ApiTags('AUTH')
+@ApiTagAuth()
 @Controller('api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: '구글 로그인' })
-  @ApiCreatedResponse({
-    description: 'type: new -> 새로운 회원, exist -> 기존 회원',
-    schema: {
-      example: {
-        statusCode: 200,
-        message: '로그인 성공했습니다',
-        data: {
-          type: 'exist',
-          isNameExist: 'false',
-          accessToken: 'e~',
-          refreshToken: 'e~',
-        },
-      },
-    },
-  })
+  @ApiDescription('구글 로그인')
+  @ApiResponseLoginSuccess()
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
   async googleLogin(): Promise<void> {}
 
-  @ApiExcludeEndpoint()
+  @ApiExclude()
   @UseGuards(GoogleAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @Get('google/callback')
@@ -65,26 +52,13 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiOperation({ summary: '카카오 로그인' })
-  @ApiCreatedResponse({
-    description: 'type: new -> 새로운 회원, exist -> 기존 회원',
-    schema: {
-      example: {
-        statusCode: 200,
-        message: '로그인 성공했습니다',
-        data: {
-          type: 'exist',
-          accessToken: 'e~',
-          refreshToken: 'e~',
-        },
-      },
-    },
-  })
+  @ApiDescription('카카오 로그인')
+  @ApiResponseLoginSuccess()
   @UseGuards(KakaoAuthGuard)
   @Get('kakao/login')
   async kakaoLogin(): Promise<void> {}
 
-  @ApiExcludeEndpoint()
+  @ApiExclude()
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(KakaoAuthGuard)
   @Get('kakao/callback')
@@ -104,26 +78,13 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiOperation({ summary: '네이버 로그인' })
-  @ApiCreatedResponse({
-    description: 'type: new -> 새로운 회원, exist -> 기존 회원',
-    schema: {
-      example: {
-        statusCode: 200,
-        message: '로그인 성공했습니다',
-        data: {
-          type: 'exist',
-          accessToken: 'e~',
-          refreshToken: 'e~',
-        },
-      },
-    },
-  })
+  @ApiDescription('네이버 로그인')
+  @ApiResponseLoginSuccess()
   @UseGuards(NaverAuthGuard)
   @Get('naver/login')
   async naverLogin(): Promise<void> {}
 
-  @ApiExcludeEndpoint()
+  @ApiExclude()
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(NaverAuthGuard)
   @Get('naver/callback')
@@ -143,11 +104,11 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiBearerAuth('refresh-token')
-  @ApiOperation({ summary: '엑세스 토큰 리프레시(엑세스 토큰이 만료되었을 경우 해당 API로 엑세스 토큰 갱신' })
-  @ApiResponse({ status: 200, description: '엑세스 토큰 갱신 성공' })
-  @ApiResponse({ status: 400, description: 'Refresh Token이 없거나 형식에 어긋날 때' })
-  @ApiResponse({ status: 401, description: 'Refresh Token 만료' })
+  @ApiBearerAuthRefreshToken()
+  @ApiDescription('엑세스 토큰 리프레시(엑세스 토큰이 만료되었을 경우 해당 API로 엑세스 토큰 갱신')
+  @ApiResponseSuccess()
+  @ApiResponseErrorBadRequest('Refresh Token이 없거나 형식에 어긋날 때')
+  @ApiResponseErrorUnauthorized('Refresh Token 만료')
   @UseGuards(JwtRefreshAuthGuard)
   @Get('refresh')
   async refreshAccessToken(
@@ -161,9 +122,9 @@ export class AuthController {
     return { message: '성공적으로 access 토큰이 갱신되었습니다', result };
   }
 
-  @ApiOperation({ summary: '로그아웃' })
-  @ApiBearerAuth('access-token')
-  @ApiResponse({ status: 200, description: '로그아웃 성공' })
+  @ApiDescription('로그아웃')
+  @ApiBearerAuthAccessToken()
+  @ApiResponseSuccess()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @HttpCode(HttpStatus.OK)
@@ -176,5 +137,22 @@ export class AuthController {
     const { refreshOption } = await this.authService.socialLogout(userId, transactionManager);
     res.cookie('Refresh-Token', '', refreshOption);
     return { message: '성공적으로 로그아웃 되었습니다.' };
+  }
+
+  @ApiDescription('회원탈퇴')
+  @ApiBearerAuthAccessToken()
+  @ApiResponseSuccess()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TransactionInterceptor)
+  @Delete('withdraw')
+  async userWithdraw(
+    @TransactionManager() transactionManager,
+    @GetUserId() userId: number,
+    @GetUserProviderId() providerId: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string }> {
+    const { refreshOption } = await this.authService.deleteUserAndLogout(userId, providerId, transactionManager);
+    res.cookie('Refresh-Token', '', refreshOption);
+    return { message: '성공적으로 탈퇴되었습니다' };
   }
 }
