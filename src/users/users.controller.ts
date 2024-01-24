@@ -5,7 +5,7 @@ import { UsersService } from './users.service';
 import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { GetUserId } from 'src/utils/decorators/get-user.decorator';
+import { GetUserId, GetUserProviderId } from 'src/utils/decorators/get-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 
@@ -13,10 +13,9 @@ import { Response } from 'express';
 @Controller('api/user')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
-
   @ApiOperation({ summary: '닉네임 업데이트' })
   @ApiBearerAuth('access-token')
-  @ApiResponse({ status: 200, description: '성공적으로 업데이트' })
+  @ApiResponse({ status: 200, description: 'OK' })
   @ApiResponse({ status: 400, description: '엑세스 토큰 없음' })
   @ApiResponse({ status: 409, description: '이미 닉네임이 존재' })
   @UseGuards(JwtAuthGuard)
@@ -46,7 +45,7 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 200, description: '성공적으로 업데이트' })
+  @ApiResponse({ status: 200, description: 'OK' })
   @ApiResponse({ status: 400, description: '사용자는 존재하나 업데이트 영향을 받은 필드가 없음(업데이트 X)' })
   @ApiResponse({ status: 404, description: '존재하지 않는 사용자' })
   @UseGuards(JwtAuthGuard)
@@ -76,7 +75,7 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 200, description: '성공적으로 업데이트' })
+  @ApiResponse({ status: 200, description: 'OK' })
   @ApiResponse({ status: 400, description: '사용자는 존재하나 업데이트 영향을 받은 필드가 없음(업데이트 X)' })
   @ApiResponse({ status: 404, description: '존재하지 않는 사용자' })
   @UseGuards(JwtAuthGuard)
@@ -99,5 +98,19 @@ export class UsersController {
   async getImage(@Param('filename') filename: string, @Res() res: Response): Promise<{ message: string }> {
     res.sendFile(filename, { root: 'uploads' });
     return { message: '이미지를 성공적으로 가져왔습니다' };
+  }
+
+  @ApiOperation({ summary: '현재 사용자 정보 조회' })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: 'OK ' })
+  @ApiResponse({ status: 404, description: '존재하지 않는 사용자' })
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async readMyInfo(
+    @GetUserId() userId: number,
+    @GetUserProviderId() providerId: string,
+  ): Promise<{ message: string; result: any }> {
+    const result = await this.userService.getUserInfo(userId, providerId);
+    return { message: '내 정보를 성공적으로 가져왔습니다', result };
   }
 }

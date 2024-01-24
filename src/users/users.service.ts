@@ -74,6 +74,19 @@ export class UsersService {
     }
   }
 
+  async getUserInfo(userId: number, providerId: string) {
+    try {
+      const user = this.usersRepository.findOne({ where: { userId, providerId } });
+      if (!user) {
+        throw new NotFoundException('존재하지 않는 사용자입니다');
+      }
+      return user;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
   private async checkNicknameExists(name: string, currentUserId: number) {
     const user = await this.usersRepository.findOne({ where: { name } });
     if (user && currentUserId !== user.userId) {
