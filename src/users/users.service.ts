@@ -96,6 +96,7 @@ export class UsersService {
       throw e;
     }
   }
+
   private async checkNicknameExists(name: string, currentUserId: number) {
     const user = await this.usersRepository.findOne({ where: { name } });
     if (user && currentUserId !== user.userId) {
