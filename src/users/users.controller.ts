@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Put, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersService } from './users.service';
 import { TransactionManager } from 'src/utils/decorators/transaction.decorator';
@@ -7,7 +7,6 @@ import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { GetUserId } from 'src/utils/decorators/get-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { Response } from 'express';
 
 @ApiTags('USER')
@@ -35,56 +34,70 @@ export class UsersController {
   @ApiOperation({ summary: '프로필 사진 업데이트' })
   @ApiBearerAuth('access-token')
   @ApiConsumes('multipart/form-data')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(
-    TransactionInterceptor,
-    FileInterceptor('profileUrl', {
-      storage: diskStorage({
-        destination(req, file, callback) {
-          callback(null, './uploads');
+  @ApiBody({
+    description: 'Upload Profile picture',
+    schema: {
+      type: 'object',
+      properties: {
+        profileUrl: {
+          type: 'string',
+          format: 'binary',
         },
-        filename(req, file, callback) {
-          const uniqueSuffix = `${Date.now()}`;
-          const extension = file.originalname.split('.').pop();
-          callback(null, `${uniqueSuffix}.${extension}`);
-        },
-      }),
-      fileFilter(req, file, callback) {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (!allowedTypes.includes(file.mimetype)) {
-          throw new Error('Invalid file type');
-        }
-        callback(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024, files: 1 },
-    }),
-  )
+    },
+  })
+  @ApiResponse({ status: 200, description: '성공적으로 업데이트' })
+  @ApiResponse({ status: 400, description: '사용자는 존재하나 업데이트 영향을 받은 필드가 없음(업데이트 X)' })
+  @ApiResponse({ status: 404, description: '존재하지 않는 사용자' })
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TransactionInterceptor, FileInterceptor('profileUrl'))
   @Put('updateimage/profile')
   async updateProfile(
     @GetUserId() userId: number,
     @TransactionManager() transactionManager,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.uploadProfile(userId, file.filename);
+    const result = await this.userService.uploadProfile(userId, file.filename, transactionManager);
     return { message: '성공적으로 프로필이 업데이트 되었습니다', result };
   }
 
+  @ApiOperation({ summary: '배경 사진 업데이트' })
+  @ApiBearerAuth('access-token')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Upload Background picture',
+    schema: {
+      type: 'object',
+      properties: {
+        backgroundUrl: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: '성공적으로 업데이트' })
+  @ApiResponse({ status: 400, description: '사용자는 존재하나 업데이트 영향을 받은 필드가 없음(업데이트 X)' })
+  @ApiResponse({ status: 404, description: '존재하지 않는 사용자' })
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TransactionInterceptor, FileInterceptor('backgroundUrl'))
+  @Put('updateimage/background')
+  async updateBGImage(
+    @GetUserId() userId: number,
+    @TransactionManager() transactionManager,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ message: string; result: any }> {
+    const result = await this.userService.uploadBGImage(userId, file.filename, transactionManager);
+    return { message: '성공적으로 배경 이미지가 업데이트 되었습니다', result };
+  }
+
+  @ApiOperation({ summary: '이미지 확인하기(가져오기)' })
+  @ApiBearerAuth('access-token')
+  @ApiParam({ name: 'filename', description: '(예) 170605242.png' })
   @UseGuards(JwtAuthGuard)
   @Get('uploads/:filename')
   async getImage(@Param('filename') filename: string, @Res() res: Response): Promise<{ message: string }> {
     res.sendFile(filename, { root: 'uploads' });
     return { message: '이미지를 성공적으로 가져왔습니다' };
   }
-
-  // @ApiOperation({ summary: '배경 사진 업데이트' })
-  // @ApiBearerAuth('access-token')
-  // @UseGuards(JwtAuthGuard)
-  // @UseInterceptors(TransactionInterceptor)
-  // @Put('updateimage/background')
-  // async updateBGImage(
-  //   @GetUserId() userId: number,
-  //   @TransactionManager() transactionManager,
-  // ): Promise<{ message: string; result: any }> {
-  //   return { message: '성공적으로 배경 사진이 업데이트 되었습니다', result };
-  // }
 }

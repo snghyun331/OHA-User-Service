@@ -7,7 +7,7 @@ import {
   LoggerService,
   NotFoundException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -34,7 +34,7 @@ export class UsersService {
     }
   }
 
-  async uploadProfile(userId: number, filename: string) {
+  async uploadProfile(userId: number, filename: string, transactionManager: EntityManager) {
     try {
       const user = await this.usersRepository.findOne({ where: { userId } });
       if (!user) {
@@ -43,7 +43,27 @@ export class UsersService {
       const url = `http://${this.configService.get('HOST')}:${+this.configService.get(
         'PORT1',
       )}/api/user/uploads/${filename}`;
-      const result = await this.usersRepository.update(userId, { profileUrl: url });
+      const result = await transactionManager.update(UserEntity, userId, { profileUrl: url });
+      if (result.affected === 0) {
+        throw new BadRequestException('Profile update failed: Invalid input data');
+      }
+      return { imageUrl: url };
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async uploadBGImage(userId: number, filename: string, transactionManager: EntityManager) {
+    try {
+      const user = await this.usersRepository.findOne({ where: { userId } });
+      if (!user) {
+        throw new NotFoundException('존재하지 않는 사용자입니다');
+      }
+      const url = `http://${this.configService.get('HOST')}:${+this.configService.get(
+        'PORT1',
+      )}/api/user/uploads/${filename}`;
+      const result = await transactionManager.update(UserEntity, userId, { backgroundUrl: url });
       if (result.affected === 0) {
         throw new BadRequestException('Profile update failed: Invalid input data');
       }
