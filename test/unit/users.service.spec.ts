@@ -16,7 +16,7 @@ describe('UsersService (Unit)', () => {
         UsersService,
         {
           provide: getRepositoryToken(UserEntity),
-          useClass: Repository, // Mock 또는 실제 Repository를 사용할 수 있습니다.
+          useClass: Repository,
         },
       ],
     }).compile();

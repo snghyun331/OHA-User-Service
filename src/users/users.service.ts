@@ -111,7 +111,7 @@ export class UsersService {
 
       if (users.length !== userIds.length) {
         for (const userId of userIds) {
-          const userExists = users.some((user) => user.userId === parseInt(userId));
+          const userExists = users.some((user) => user.userId === userId);
           if (!userExists) {
             throw new NotFoundException(`아이디가 ${userId}인 유저는 존재하지 않습니다`);
           }

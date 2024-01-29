@@ -1,3 +1,3 @@
 export class UsersInfoDto {
-  userIds: string[];
+  userIds: number[];
 }
