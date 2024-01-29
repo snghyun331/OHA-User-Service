@@ -7,10 +7,12 @@ import {
   LoggerService,
   NotFoundException,
 } from '@nestjs/common';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { UpdateNameDto } from './dto/update-name.dto';
+import { UsersInfoDto } from './dto/users-info.dto';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +24,7 @@ export class UsersService {
     private configService: ConfigService,
   ) {}
 
-  async updateNickname(userId, updateNameDto, transactionManager) {
+  async updateNickname(userId: number, updateNameDto: UpdateNameDto, transactionManager: EntityManager) {
     try {
       const { name } = updateNameDto;
       await this.checkNicknameExists(name, userId);
@@ -91,6 +93,31 @@ export class UsersService {
     try {
       const allUsers = this.usersRepository.find({});
       return allUsers;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async getSpecificUsersInfo(usersInfoDto: UsersInfoDto, manager: EntityManager) {
+    try {
+      const { userIds } = usersInfoDto;
+      if (!userIds || userIds.length === 0) {
+        throw new BadRequestException('요청한 유저 아이디가 없습니다');
+      }
+      const users = await manager.getRepository(UserEntity).find({
+        where: { userId: In(userIds) },
+      });
+
+      if (users.length !== userIds.length) {
+        for (const userId of userIds) {
+          const userExists = users.some((user) => user.userId === parseInt(userId));
+          if (!userExists) {
+            throw new NotFoundException(`아이디가 ${userId}인 유저는 존재하지 않습니다`);
+          }
+        }
+      }
+      return users;
     } catch (e) {
       this.logger.error(e);
       throw e;

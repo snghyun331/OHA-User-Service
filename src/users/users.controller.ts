@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Put, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UpdateNameDto } from './dto/update-name.dto';
+import { UsersInfoDto } from './dto/users-info.dto';
 import { UsersService } from './users.service';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
 import { JwtAuthGuard } from 'src/auth/guards/jwt/jwt-auth.guard';
@@ -111,5 +112,17 @@ export class UsersController {
   async getAllUsers(): Promise<{ message: string; result: any }> {
     const result = await this.userService.getUsersInfo();
     return { message: '모든 사용자 정보를 성공적으로 가져왔습니다', result };
+  }
+
+  @ApiDescription('특정 사용자 여러명 정보 조회')
+  @ApiResponseSuccess()
+  @UseInterceptors(TransactionInterceptor)
+  @Post('postSpecificUsers')
+  async postSpecificUsers(
+    @Body() usersInfoDto: UsersInfoDto,
+    @TransactionManager() transactionManager,
+  ): Promise<{ message: string; result: any }> {
+    const result = await this.userService.getSpecificUsersInfo(usersInfoDto, transactionManager);
+    return { message: '요청한 유저들의 정보를 성공적으로 가져왔습니다', result };
   }
 }

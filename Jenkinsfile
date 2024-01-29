@@ -4,6 +4,7 @@ pipeline {
         HOST = credentials('host')
         PORT1 = credentials('port1')
         PORT2 = credentials('port2')
+        DB_HOST = credentials('db_host')
         DB_PORT = credentials('db_port')
         DB_USER = credentials('db_user')
         DB_PW = credentials('db_pw')
@@ -56,6 +57,7 @@ pipeline {
                             echo "HOST=${HOST}" > .product.env
                             echo "PORT1=${PORT1}" >> .product.env
                             echo "PORT2=${PORT2}" >> .product.env
+                            echo "DB_HOST=${DB_HOST}" >> .product.env
                             echo "DB_PORT=${DB_PORT}" >> .product.env
                             echo "DB_USER=${DB_USER}" >> .product.env
                             echo "DB_PW=${DB_PW}" >> .product.env
