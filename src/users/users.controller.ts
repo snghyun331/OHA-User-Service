@@ -115,8 +115,9 @@ export class UsersController {
   }
 
   @ApiDescription('특정 사용자 여러명 정보 조회')
-  @ApiResponseSuccess()
+  @ApiBearerAuthAccessToken()
   @UseInterceptors(TransactionInterceptor)
+  @UseGuards(JwtAuthGuard)
   @Post('postSpecificUsers')
   async postSpecificUsers(
     @Body() usersInfoDto: UsersInfoDto,
