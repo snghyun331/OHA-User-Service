@@ -3,7 +3,7 @@ import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { UsersService } from './users.service';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
-import { JwtAuthGuard } from 'src/auth/guards/jwt/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import {

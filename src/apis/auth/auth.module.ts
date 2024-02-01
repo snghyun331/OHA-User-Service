@@ -2,14 +2,10 @@ import { Logger, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UserEntity } from '../users/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { GoogleStrategy } from './strategies/google.strategy';
-import { JwtStrategy } from './strategies/jwt.access.strategy';
-import { JwtRefreshStrategy } from './strategies/jwt.refresh.strategy';
-import { KakaoStrategy } from './strategies/kakao.strategy';
-import { NaverStrategy } from './strategies/naver.strategy';
+import { GoogleStrategy, KakaoStrategy, NaverStrategy, JwtStrategy, JwtRefreshStrategy } from 'src/strategies';
 import { TokenService } from './token.service';
 
 @Module({

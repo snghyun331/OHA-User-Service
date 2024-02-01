@@ -8,10 +8,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UserEntity } from '../users/entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
-import { ProviderType } from 'src/users/types/user.enum';
-import { GoogleUser, KakaoUser, NaverUser } from 'src/auth/interfaces';
+import { ProviderType } from '../users/types/user.enum';
+import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
 import { TokenService } from './token.service';
 
 @Injectable()

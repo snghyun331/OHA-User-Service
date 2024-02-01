@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
 import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
-import { JwtAuthGuard, JwtRefreshAuthGuard, GoogleAuthGuard, KakaoAuthGuard, NaverAuthGuard } from './guards';
+import { JwtAuthGuard, JwtRefreshAuthGuard, GoogleAuthGuard, KakaoAuthGuard, NaverAuthGuard } from 'src/guards';
 import {
   GetUser,
   GetUserId,

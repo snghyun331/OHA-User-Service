@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { NestConfigModule } from './configs/config.module';
 import { DatabaseModule } from './configs/databse.module';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './apis/users/users.module';
+import { AuthModule } from './apis/auth/auth.module';
 import { ServiceDiscoveryModule } from './configs/eureka.module';
 
 const env = process.env.NODE_ENV;
