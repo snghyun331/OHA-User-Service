@@ -177,6 +177,7 @@ export class UsersController {
   @ApiDescription('자주 가는 지역 삭제')
   @ApiBearerAuthAccessToken()
   @ApiResponseSuccess()
+  @ApiResponseErrorConflict('이미 지역 삭제')
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(JwtAuthGuard)
   @Delete('freqdistrict')
@@ -187,6 +188,6 @@ export class UsersController {
     @Body() dto: FreqDistrictDto,
   ): Promise<{ message: string; result: any }> {
     const result = await this.userService.deleteFreqDistrict(token, userId, dto, transactionManager);
-    return { message: '성공', result };
+    return { message: '성공적으로 지역이 삭제되었습니다', result };
   }
 }

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpStatus,
   Inject,
   Injectable,
   Logger,
@@ -145,6 +146,14 @@ export class UsersService {
       return allFreqDistricts;
     } catch (e) {
       this.logger.error(e);
+      if (e.response && e.response.data) {
+        if (e.response.data.statusCode === HttpStatus.BAD_REQUEST) {
+          throw new BadRequestException(`${e.response.data.message}`);
+        }
+        if (e.response.data.statusCode === HttpStatus.NOT_FOUND) {
+          throw new NotFoundException(`${e.response.data.message}`);
+        }
+      }
       throw e;
     }
   }
@@ -154,7 +163,6 @@ export class UsersService {
       const { address } = dto;
       const code = await this.findDistrictCode(token, address);
       const deleteResult = await transactionManager.delete(UserFreqDistrictEntity, { userId, code });
-      console.log(deleteResult);
       if (deleteResult.affected === 0) {
         throw new ConflictException('해당 지역은 이미 삭제되었습니다');
       }
@@ -162,6 +170,14 @@ export class UsersService {
       return allFreqDistricts;
     } catch (e) {
       this.logger.error(e);
+      if (e.response && e.response.data) {
+        if (e.response.data.statusCode === HttpStatus.BAD_REQUEST) {
+          throw new BadRequestException(`${e.response.data.message}`);
+        }
+        if (e.response.data.statusCode === HttpStatus.NOT_FOUND) {
+          throw new NotFoundException(`${e.response.data.message}`);
+        }
+      }
       throw e;
     }
   }
@@ -206,6 +222,14 @@ export class UsersService {
       return result;
     } catch (e) {
       this.logger.error(e);
+      if (e.response && e.response.data) {
+        if (e.response.data.statusCode === HttpStatus.BAD_REQUEST) {
+          throw new BadRequestException(`${e.response.data.message}`);
+        }
+        if (e.response.data.statusCode === HttpStatus.NOT_FOUND) {
+          throw new NotFoundException(`${e.response.data.message}`);
+        }
+      }
       throw e;
     }
   }
