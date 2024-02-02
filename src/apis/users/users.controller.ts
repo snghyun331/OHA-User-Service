@@ -36,13 +36,13 @@ export class UsersController {
   @ApiResponseErrorConflict('이미 닉네임이 존재')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
-  @Put('updatename')
+  @Put('name')
   async updateName(
     @GetUserId() userId: number,
     @TransactionManager() transactionManager,
-    @Body() updateNameDto: UpdateNameDto,
+    @Body() dto: UpdateNameDto,
   ): Promise<{ message: string }> {
-    await this.userService.updateNickname(userId, updateNameDto, transactionManager);
+    await this.userService.updateNickname(userId, dto, transactionManager);
     return { message: '닉네임이 성공적으로 업데이트 되었습니다.' };
   }
 
@@ -55,7 +55,7 @@ export class UsersController {
   @ApiResponseErrorNotFound('존재하지 않는 사용자')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor, FileInterceptor('profileImage'))
-  @Put('updateimage/profile')
+  @Put('image/profile')
   async updateProfile(
     @GetUserId() userId: number,
     @TransactionManager() transactionManager,
@@ -74,7 +74,7 @@ export class UsersController {
   @ApiResponseErrorNotFound('존재하지 않는 사용자')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor, FileInterceptor('backgroundImage'))
-  @Put('updateimage/background')
+  @Put('image/background')
   async updateBGImage(
     @GetUserId() userId: number,
     @TransactionManager() transactionManager,
@@ -99,7 +99,7 @@ export class UsersController {
   @ApiResponseSuccess()
   @ApiResponseErrorNotFound('존재하지 않는 사용자')
   @UseGuards(JwtAuthGuard)
-  @Get('getmyinfo')
+  @Get('myinfo')
   async getMyInfo(
     @GetUserId() userId: number,
     @GetUserProviderId() providerId: string,
@@ -110,7 +110,7 @@ export class UsersController {
 
   @ApiDescription('모든 사용자 정보 조히')
   @ApiResponseSuccess()
-  @Get('getallusers')
+  @Get('allusers')
   async getAllUsers(): Promise<{ message: string; result: any }> {
     const result = await this.userService.getUsersInfo();
     return { message: '모든 사용자 정보를 성공적으로 가져왔습니다', result };
@@ -120,12 +120,12 @@ export class UsersController {
   @ApiBearerAuthAccessToken()
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(JwtAuthGuard)
-  @Post('postSpecificUsers')
+  @Post('specificusers')
   async postSpecificUsers(
-    @Body() usersInfoDto: UsersInfoDto,
+    @Body() dto: UsersInfoDto,
     @TransactionManager() transactionManager,
   ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getSpecificUsersInfo(usersInfoDto, transactionManager);
+    const result = await this.userService.getSpecificUsersInfo(dto, transactionManager);
     return { message: '요청한 유저들의 정보를 성공적으로 가져왔습니다', result };
   }
 
@@ -138,9 +138,9 @@ export class UsersController {
     @TransactionManager() transactionManager,
     @GetUserToken() token: string,
     @GetUserId() userId: number,
-    @Body() createFreqDto: CreateFreqDto,
+    @Body() dto: CreateFreqDto,
   ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.createFreqDistrict(token, userId, createFreqDto, transactionManager);
+    const result = await this.userService.createFreqDistrict(token, userId, dto, transactionManager);
     return { message: '자주 가는 지역 리스트에 성공적으로 추가하였습니다', result };
   }
 
@@ -154,7 +154,7 @@ export class UsersController {
     @GetUserId() userId: number,
     @TransactionManager() transactionManager,
   ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getUserFreqDistricts(token, userId, transactionManager);
+    const result = await this.userService.getFreqDistricts(token, userId, transactionManager);
     return { message: '자주 가는 지역 정보를 성공적으로 불러왔습니다', result };
   }
 }

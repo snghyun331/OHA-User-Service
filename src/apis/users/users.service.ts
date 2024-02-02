@@ -17,6 +17,7 @@ import { CreateFreqDto } from './dto/create-freq.dto';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { UserFreqDistrictEntity } from './entities/user-freq-locations.entity';
+import { GETCODE_PATH, GETNAMEBYCODES_PATH } from 'src/utils/path';
 
 @Injectable()
 export class UsersService {
@@ -31,9 +32,9 @@ export class UsersService {
     private readonly httpService: HttpService,
   ) {}
 
-  async updateNickname(userId: number, updateNameDto: UpdateNameDto, transactionManager: EntityManager) {
+  async updateNickname(userId: number, dto: UpdateNameDto, transactionManager: EntityManager) {
     try {
-      const { name } = updateNameDto;
+      const { name } = dto;
       await this.checkNicknameExists(name, userId);
       await transactionManager.update(UserEntity, userId, { name });
       return;
@@ -98,7 +99,7 @@ export class UsersService {
 
   async getUsersInfo() {
     try {
-      const allUsers = this.usersRepository.find({});
+      const allUsers = await this.usersRepository.find({});
       return allUsers;
     } catch (e) {
       this.logger.error(e);
@@ -106,9 +107,9 @@ export class UsersService {
     }
   }
 
-  async getSpecificUsersInfo(usersInfoDto: UsersInfoDto, manager: EntityManager) {
+  async getSpecificUsersInfo(dto: UsersInfoDto, manager: EntityManager) {
     try {
-      const { userIds } = usersInfoDto;
+      const { userIds } = dto;
       if (!userIds || userIds.length === 0) {
         throw new BadRequestException('요청한 유저 아이디가 없습니다');
       }
@@ -131,16 +132,16 @@ export class UsersService {
     }
   }
 
-  async createFreqDistrict(token: string, userId: number, createFreqDto: CreateFreqDto, transactionManager) {
+  async createFreqDistrict(token: string, userId: number, dto: CreateFreqDto, transactionManager: EntityManager) {
     try {
-      const { address } = createFreqDto;
-      const code = await this.findCode(token, address);
+      const { address } = dto;
+      const code = await this.findDistrictCode(token, address);
       const freqInfo = await this.userFreqDistrictRepository.findOne({ where: { userId, code } });
       if (freqInfo) {
         throw new ConflictException('해당 지역을 이미 선택했습니다');
       }
-      await this.createFreqDistrictOfUser(code, userId, transactionManager);
-      const allFreqDistricts = await this.getUserFreqDistricts(token, userId, transactionManager);
+      await this.createNewFreqDistrict(code, userId, transactionManager);
+      const allFreqDistricts = await this.getFreqDistricts(token, userId, transactionManager);
       return allFreqDistricts;
     } catch (e) {
       this.logger.error(e);
@@ -148,41 +149,45 @@ export class UsersService {
     }
   }
 
-  async getUserFreqDistricts(token: string, userId: number, transactionManager) {
-    const results = await transactionManager.find(UserFreqDistrictEntity, {
-      select: { code: true },
-      where: { userId },
-    });
-    const codes = results.map((result) => result.code);
-    const accessToken = token;
-    const headers = { Authorization: `Bearer ${accessToken}` };
-    const body = { codes: codes };
-    const response = await lastValueFrom(
-      // toPromise()역할과 비슷
-      this.httpService.post('http://52.79.158.1/api/common/location/getnamebycodes', body, {
-        headers,
-      }),
-    );
-    const districtNames = response.data.data;
-    const result = districtNames.reduce((acc, item) => {
-      const { firstAddress, secondAddress, thirdAddress } = item;
+  async getFreqDistricts(token: string, userId: number, transactionManager) {
+    try {
+      const results = await transactionManager.find(UserFreqDistrictEntity, {
+        select: { code: true },
+        where: { userId },
+      });
+      const codes = results.map((result) => result.code);
+      const accessToken = token;
+      const headers = { Authorization: `Bearer ${accessToken}` };
+      const body = { codes: codes };
+      const response = await lastValueFrom(
+        this.httpService.post(GETNAMEBYCODES_PATH, body, {
+          headers,
+        }),
+      );
+      const districtNames = response.data.data;
+      const result = districtNames.reduce((acc, item) => {
+        const { firstAddress, secondAddress, thirdAddress } = item;
 
-      // 1단계: 주소 정보 가져오기
-      const firstLevel = acc[firstAddress] || {};
-      const secondLevel = firstLevel[secondAddress] || [];
+        // 1단계: 주소 정보 가져오기
+        const firstLevel = acc[firstAddress] || {};
+        const secondLevel = firstLevel[secondAddress] || [];
 
-      // 2단계: 주소 정보 추가
-      if (thirdAddress && !secondLevel.includes(thirdAddress)) {
-        secondLevel.push(thirdAddress);
-      }
+        // 2단계: 주소 정보 추가
+        if (thirdAddress && !secondLevel.includes(thirdAddress)) {
+          secondLevel.push(thirdAddress);
+        }
 
-      // 결과 데이터 갱신
-      firstLevel[secondAddress] = secondLevel;
-      acc[firstAddress] = firstLevel;
+        // 결과 데이터 갱신
+        firstLevel[secondAddress] = secondLevel;
+        acc[firstAddress] = firstLevel;
 
-      return acc;
-    }, {});
-    return result;
+        return acc;
+      }, {});
+      return result;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
   }
 
   private async checkNicknameExists(name: string, currentUserId: number) {
@@ -195,13 +200,12 @@ export class UsersService {
     }
   }
 
-  private async findCode(token: string, address: string) {
+  private async findDistrictCode(token: string, address: string) {
     const accessToken = token;
     const headers = { Authorization: `Bearer ${accessToken}` };
     const body = { address: address };
     const response = await lastValueFrom(
-      // toPromise()역할과 비슷
-      this.httpService.post('http://52.79.158.1/api/common/location/getcode', body, {
+      this.httpService.post(GETCODE_PATH, body, {
         headers,
       }),
     );
@@ -209,13 +213,10 @@ export class UsersService {
     return code;
   }
 
-  private async createFreqDistrictOfUser(code: string, userId: number, transactionManager) {
+  private async createNewFreqDistrict(code: string, userId: number, transactionManager: EntityManager) {
     const newFreqDistrict = new UserFreqDistrictEntity();
     newFreqDistrict.code = code;
     newFreqDistrict.userId = userId;
-
-    await transactionManager.save(newFreqDistrict);
-    console.log('*');
-    return;
+    return await transactionManager.save(newFreqDistrict);
   }
 }
