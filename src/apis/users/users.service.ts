@@ -84,7 +84,7 @@ export class UsersService {
     }
   }
 
-  async getUserInfo(userId: number, providerId: string) {
+  async getUser(userId: number, providerId: string) {
     try {
       const user = this.usersRepository.findOne({ where: { userId, providerId } });
       if (!user) {
@@ -97,7 +97,7 @@ export class UsersService {
     }
   }
 
-  async getUsersInfo() {
+  async getUsers() {
     try {
       const allUsers = await this.usersRepository.find({});
       return allUsers;
@@ -107,7 +107,7 @@ export class UsersService {
     }
   }
 
-  async getSpecificUsersInfo(dto: UsersInfoDto, manager: EntityManager) {
+  async getSpecificUsers(dto: UsersInfoDto, manager: EntityManager) {
     try {
       const { userIds } = dto;
       if (!userIds || userIds.length === 0) {
@@ -149,12 +149,15 @@ export class UsersService {
     }
   }
 
-  async getFreqDistricts(token: string, userId: number, transactionManager) {
+  async getFreqDistricts(token: string, userId: number, transactionManager: EntityManager) {
     try {
       const results = await transactionManager.find(UserFreqDistrictEntity, {
         select: { code: true },
         where: { userId },
       });
+      if (!results || results.length === 0) {
+        throw new NotFoundException('코드 조회 결과가 없습니다');
+      }
       const codes = results.map((result) => result.code);
       const accessToken = token;
       const headers = { Authorization: `Bearer ${accessToken}` };

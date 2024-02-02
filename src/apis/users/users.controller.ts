@@ -104,7 +104,7 @@ export class UsersController {
     @GetUserId() userId: number,
     @GetUserProviderId() providerId: string,
   ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getUserInfo(userId, providerId);
+    const result = await this.userService.getUser(userId, providerId);
     return { message: '내 정보를 성공적으로 가져왔습니다', result };
   }
 
@@ -112,7 +112,7 @@ export class UsersController {
   @ApiResponseSuccess()
   @Get('allusers')
   async getAllUsers(): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getUsersInfo();
+    const result = await this.userService.getUsers();
     return { message: '모든 사용자 정보를 성공적으로 가져왔습니다', result };
   }
 
@@ -121,16 +121,17 @@ export class UsersController {
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(JwtAuthGuard)
   @Post('specificusers')
-  async postSpecificUsers(
+  async getSpecificUsers(
     @Body() dto: UsersInfoDto,
     @TransactionManager() transactionManager,
   ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getSpecificUsersInfo(dto, transactionManager);
+    const result = await this.userService.getSpecificUsers(dto, transactionManager);
     return { message: '요청한 유저들의 정보를 성공적으로 가져왔습니다', result };
   }
 
   @ApiDescription('자주 가는 지역 추가')
   @ApiBearerAuthAccessToken()
+  @ApiResponseErrorConflict('해당 지역을 이미 선택')
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(JwtAuthGuard)
   @Post('freqdistrict')
@@ -146,6 +147,7 @@ export class UsersController {
 
   @ApiDescription('자주 가는 지역 모두 조회')
   @ApiBearerAuthAccessToken()
+  @ApiResponseErrorNotFound('코드 조회 결과가 없음')
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(JwtAuthGuard)
   @Get('freqdistricts')
