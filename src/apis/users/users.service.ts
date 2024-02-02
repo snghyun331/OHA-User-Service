@@ -13,7 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
-import { CreateFreqDto } from './dto/create-freq.dto';
+import { FreqDistrictDto } from './dto/freq-disctrict.dto';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { UserFreqDistrictEntity } from './entities/user-freq-locations.entity';
@@ -132,7 +132,7 @@ export class UsersService {
     }
   }
 
-  async createFreqDistrict(token: string, userId: number, dto: CreateFreqDto, transactionManager: EntityManager) {
+  async createFreqDistrict(token: string, userId: number, dto: FreqDistrictDto, transactionManager: EntityManager) {
     try {
       const { address } = dto;
       const code = await this.findDistrictCode(token, address);
@@ -141,6 +141,23 @@ export class UsersService {
         throw new ConflictException('해당 지역을 이미 선택했습니다');
       }
       await this.createNewFreqDistrict(code, userId, transactionManager);
+      const allFreqDistricts = await this.getFreqDistricts(token, userId, transactionManager);
+      return allFreqDistricts;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async deleteFreqDistrict(token: string, userId: number, dto: FreqDistrictDto, transactionManager: EntityManager) {
+    try {
+      const { address } = dto;
+      const code = await this.findDistrictCode(token, address);
+      const deleteResult = await transactionManager.delete(UserFreqDistrictEntity, { userId, code });
+      console.log(deleteResult);
+      if (deleteResult.affected === 0) {
+        throw new ConflictException('해당 지역은 이미 삭제되었습니다');
+      }
       const allFreqDistricts = await this.getFreqDistricts(token, userId, transactionManager);
       return allFreqDistricts;
     } catch (e) {
