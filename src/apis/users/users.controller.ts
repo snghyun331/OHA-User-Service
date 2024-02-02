@@ -20,7 +20,9 @@ import {
   ApiResponseErrorNotFound,
   ApiResponseSuccess,
   ApiTagUser,
+  GetUserToken,
 } from 'src/utils/decorators';
+import { CreateFreqDto } from './dto/create-freq.dto';
 
 @ApiTagUser()
 @Controller('api/user')
@@ -125,5 +127,34 @@ export class UsersController {
   ): Promise<{ message: string; result: any }> {
     const result = await this.userService.getSpecificUsersInfo(usersInfoDto, transactionManager);
     return { message: '요청한 유저들의 정보를 성공적으로 가져왔습니다', result };
+  }
+
+  @ApiDescription('자주 가는 지역 추가')
+  @ApiBearerAuthAccessToken()
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(JwtAuthGuard)
+  @Post('freqdistrict')
+  async createFreqDistrict(
+    @TransactionManager() transactionManager,
+    @GetUserToken() token: string,
+    @GetUserId() userId: number,
+    @Body() createFreqDto: CreateFreqDto,
+  ): Promise<{ message: string; result: any }> {
+    const result = await this.userService.createFreqDistrict(token, userId, createFreqDto, transactionManager);
+    return { message: '자주 가는 지역 리스트에 성공적으로 추가하였습니다', result };
+  }
+
+  @ApiDescription('자주 가는 지역 모두 조회')
+  @ApiBearerAuthAccessToken()
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(JwtAuthGuard)
+  @Get('freqdistricts')
+  async getFreqDistricts(
+    @GetUserToken() token: string,
+    @GetUserId() userId: number,
+    @TransactionManager() transactionManager,
+  ): Promise<{ message: string; result: any }> {
+    const result = await this.userService.getUserFreqDistricts(token, userId, transactionManager);
+    return { message: '자주 가는 지역 정보를 성공적으로 불러왔습니다', result };
   }
 }

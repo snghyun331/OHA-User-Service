@@ -14,3 +14,8 @@ export const GetUserProviderId = createParamDecorator((data, ctx: ExecutionConte
   const req = ctx.switchToHttp().getRequest();
   return req.user.providerId;
 });
+
+export const GetUserToken = createParamDecorator((data, ctx: ExecutionContext): string => {
+  const req = ctx.switchToHttp().getRequest();
+  return req.headers['authorization']?.slice(7);
+});
