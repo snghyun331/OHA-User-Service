@@ -1,16 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Res,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { UsersService } from './users.service';
@@ -32,9 +20,7 @@ import {
   ApiResponseErrorNotFound,
   ApiResponseSuccess,
   ApiTagUser,
-  GetUserToken,
 } from 'src/utils/decorators';
-import { FreqDistrictDto } from './dto/freq-disctrict.dto';
 
 @ApiTagUser()
 @Controller('api/user')
@@ -141,53 +127,5 @@ export class UsersController {
   ): Promise<{ message: string; result: any }> {
     const result = await this.userService.getSpecificUsers(dto, transactionManager);
     return { message: '요청한 유저들의 정보를 성공적으로 가져왔습니다', result };
-  }
-
-  @ApiDescription('자주 가는 지역 추가')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseErrorConflict('해당 지역을 이미 선택')
-  @UseInterceptors(TransactionInterceptor)
-  @UseGuards(JwtAuthGuard)
-  @Post('freqdistrict')
-  async createFreqDistrict(
-    @TransactionManager() transactionManager,
-    @GetUserToken() token: string,
-    @GetUserId() userId: number,
-    @Body() dto: FreqDistrictDto,
-  ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.createFreqDistrict(token, userId, dto, transactionManager);
-    return { message: '자주 가는 지역 리스트에 성공적으로 추가하였습니다', result };
-  }
-
-  @ApiDescription('자주 가는 지역 모두 조회')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseErrorNotFound('코드 조회 결과가 없음')
-  @UseInterceptors(TransactionInterceptor)
-  @UseGuards(JwtAuthGuard)
-  @Get('freqdistrict')
-  async getFreqDistricts(
-    @GetUserToken() token: string,
-    @GetUserId() userId: number,
-    @TransactionManager() transactionManager,
-  ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getFreqDistricts(token, userId, transactionManager);
-    return { message: '자주 가는 지역 정보를 성공적으로 불러왔습니다', result };
-  }
-
-  @ApiDescription('자주 가는 지역 삭제')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseSuccess()
-  @ApiResponseErrorConflict('이미 지역 삭제')
-  @UseInterceptors(TransactionInterceptor)
-  @UseGuards(JwtAuthGuard)
-  @Delete('freqdistrict')
-  async deleteFreqDistrict(
-    @GetUserToken() token: string,
-    @GetUserId() userId: number,
-    @TransactionManager() transactionManager,
-    @Body() dto: FreqDistrictDto,
-  ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.deleteFreqDistrict(token, userId, dto, transactionManager);
-    return { message: '성공적으로 지역이 삭제되었습니다', result };
   }
 }
