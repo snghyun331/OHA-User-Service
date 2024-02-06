@@ -7,9 +7,10 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { GoogleStrategy, KakaoStrategy, NaverStrategy, JwtStrategy, JwtRefreshStrategy } from 'src/strategies';
 import { TokenService } from './token.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity]), PassportModule, JwtModule.register({})],
+  imports: [TypeOrmModule.forFeature([UserEntity]), PassportModule, JwtModule.register({}), HttpModule.register({})],
   controllers: [AuthController],
   providers: [
     AuthService,

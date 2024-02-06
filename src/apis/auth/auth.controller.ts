@@ -65,6 +65,7 @@ export class AuthController {
   async kakaoCallback(
     @TransactionManager() transactionManager,
     @GetUser() kakaoUser: KakaoUser,
+
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const { type, isNameExist, accessToken, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
@@ -91,6 +92,7 @@ export class AuthController {
   async naverCallback(
     @TransactionManager() transactionManager,
     @GetUser() naverUser: NaverUser,
+
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const { type, isNameExist, accessToken, refreshToken, refreshOption } = await this.authService.handleSocialLogin(

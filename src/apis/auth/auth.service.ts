@@ -6,6 +6,9 @@ import {
   UnauthorizedException,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
+  HttpStatus,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
@@ -13,6 +16,8 @@ import { EntityManager, Repository } from 'typeorm';
 import { ProviderType } from '../users/types/user.enum';
 import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
 import { TokenService } from './token.service';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +27,7 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private usersRepository: Repository<UserEntity>,
     private tokenService: TokenService,
+    private readonly httpService: HttpService,
   ) {}
 
   async handleSocialLogin(socialUser: GoogleUser | KakaoUser | NaverUser, transactionManager: EntityManager) {
@@ -36,6 +42,8 @@ export class AuthService {
       if (!user) {
         const newUser = await this.createUser(providerType, socialUser, transactionManager);
         result = await this.login(newUser, transactionManager);
+        const { accessToken } = result;
+        await this.createDefaultDistrict(accessToken, newUser);
         type = 'new';
         isNameExist = false;
       } else {
@@ -50,6 +58,14 @@ export class AuthService {
       return { type, isNameExist, ...result };
     } catch (e) {
       this.logger.error(e);
+      if (e.response && e.response.data) {
+        if (e.response.data.statusCode === HttpStatus.BAD_REQUEST) {
+          throw new ConflictException(`${e.response.data.message}`);
+        }
+        if (e.response.data.statusCode === HttpStatus.NOT_FOUND) {
+          throw new NotFoundException(`${e.response.data.message}`);
+        }
+      }
       throw e;
     }
   }
@@ -144,5 +160,19 @@ export class AuthService {
     } else {
       return ProviderType.apple;
     }
+  }
+
+  private async createDefaultDistrict(token: string, newUser) {
+    const { userId } = newUser;
+    if (!userId) {
+      throw new BadRequestException('userId가 생성되지 않았습니다');
+    }
+    const accessToken = token;
+    const address = '서울특별시 강남구 논현동';
+    const headers = { Authorization: `Bearer ${accessToken}` };
+    const body = { address: address, isDefault: true };
+    return await lastValueFrom(
+      this.httpService.post('http://localhost:3010/api/common/location/freqdistrict', body, { headers }),
+    );
   }
 }
