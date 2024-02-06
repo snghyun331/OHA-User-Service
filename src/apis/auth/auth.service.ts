@@ -172,7 +172,7 @@ export class AuthService {
     const headers = { Authorization: `Bearer ${accessToken}` };
     const body = { address: address, isDefault: true };
     return await lastValueFrom(
-      this.httpService.post('http://localhost:3010/api/common/location/freqdistrict', body, { headers }),
+      this.httpService.post(`http://${process.env.HOST}:3010/api/common/location/freqdistrict`, body, { headers }),
     );
   }
 }
