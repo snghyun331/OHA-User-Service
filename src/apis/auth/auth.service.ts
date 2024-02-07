@@ -171,11 +171,12 @@ export class AuthService {
     const address = '서울특별시 강남구 논현동';
     const headers = { Authorization: `Bearer ${accessToken}` };
     const body = { address: address, isDefault: true };
+    // const apiUrl = `http://${process.env.HOST}:3010/api/common/location/freqdistrict`;
     let apiUrl;
     if (process.env.NODE_ENV === 'dev') {
       apiUrl = `http://${process.env.HOST}:3010/api/common/location/freqdistrict`;
     } else {
-      apiUrl = `http://${process.env.HOST}/api/common/location/freqdistrict`;
+      apiUrl = `http://${process.env.Eureka_HOST}/api/common/location/freqdistrict`;
     }
     return await lastValueFrom(this.httpService.post(apiUrl, body, { headers }));
   }
