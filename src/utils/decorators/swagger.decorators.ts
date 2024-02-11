@@ -39,6 +39,8 @@ export const ApiParamDescription = (name: string, des: string) => ApiParam({ nam
 
 export const ApiResponseSuccess = () => ApiResponse({ status: 200, description: 'OK' });
 
+export const ApiResponseCreated = () => ApiResponse({ status: 201, description: 'CREATED' });
+
 export const ApiResponseLoginSuccess = () =>
   ApiCreatedResponse({
     description: 'type: new -> 새로운 회원, exist -> 기존 회원',

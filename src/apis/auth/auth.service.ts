@@ -18,6 +18,7 @@ import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
 import { TokenService } from './token.service';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -40,13 +41,10 @@ export class AuthService {
       const user = await this.usersRepository.findOne({ where: { providerType, providerId } });
 
       if (!user) {
-        const newUser = await this.createUser(providerType, socialUser, transactionManager);
-        result = await this.login(newUser, transactionManager);
-        const { accessToken } = result;
-        await this.createDefaultDistrict(accessToken, newUser);
-        type = 'new';
-        isNameExist = false;
+        // 새로 가입할 회원일 경우
+        return socialUser;
       } else {
+        // 기존 회원일 경우
         result = await this.login(user, transactionManager);
         if (user.name === null) {
           isNameExist = false;
@@ -55,6 +53,27 @@ export class AuthService {
         }
         type = 'exist';
       }
+      return { type, isNameExist, ...result };
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async newUserLogin(socialUser: UserDto, transactionManager: EntityManager) {
+    try {
+      const providerType = await this.getProviderType(socialUser);
+      const { providerId } = socialUser;
+      const user = await this.usersRepository.findOne({ where: { providerType, providerId } });
+      if (user) {
+        throw new ConflictException('해당 유저는 이미 가입되어있습니다');
+      }
+      const newUser = await this.createUser(providerType, socialUser, transactionManager);
+      const result = await this.login(newUser, transactionManager);
+      const { accessToken } = result;
+      await this.createDefaultDistrict(accessToken, newUser);
+      const type = 'new';
+      const isNameExist = false;
       return { type, isNameExist, ...result };
     } catch (e) {
       this.logger.error(e);

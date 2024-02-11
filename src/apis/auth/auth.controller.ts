@@ -1,4 +1,15 @@
-import { Controller, Get, Post, HttpCode, HttpStatus, Res, UseGuards, UseInterceptors, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  HttpCode,
+  HttpStatus,
+  Res,
+  UseGuards,
+  UseInterceptors,
+  Delete,
+  Body,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
@@ -18,7 +29,10 @@ import {
   ApiResponseErrorBadRequest,
   ApiResponseErrorUnauthorized,
   ApiBearerAuthAccessToken,
+  ApiResponseCreated,
+  ApiResponseErrorConflict,
 } from 'src/utils/decorators';
+import { UserDto } from './dto/user.dto';
 
 @ApiTagAuth()
 @Controller('api/auth')
@@ -40,10 +54,13 @@ export class AuthController {
     @GetUser() googleUser: GoogleUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, isNameExist, accessToken, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
-      googleUser,
-      transactionManager,
-    );
+    const loginResult = await this.authService.handleSocialLogin(googleUser, transactionManager);
+
+    if (!loginResult.type) {
+      return { message: '약관동의를 완료해주세요', result: loginResult };
+    }
+
+    const { type, isNameExist, accessToken, refreshToken, refreshOption } = loginResult;
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
@@ -68,10 +85,14 @@ export class AuthController {
 
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, isNameExist, accessToken, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
-      kakaoUser,
-      transactionManager,
-    );
+    const loginResult = await this.authService.handleSocialLogin(kakaoUser, transactionManager);
+
+    if (!loginResult.type) {
+      return { message: '약관동의를 완료해주세요', result: loginResult };
+    }
+
+    const { type, isNameExist, accessToken, refreshToken, refreshOption } = loginResult;
+
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
@@ -92,13 +113,16 @@ export class AuthController {
   async naverCallback(
     @TransactionManager() transactionManager,
     @GetUser() naverUser: NaverUser,
-
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, isNameExist, accessToken, refreshToken, refreshOption } = await this.authService.handleSocialLogin(
-      naverUser,
-      transactionManager,
-    );
+    const loginResult = await this.authService.handleSocialLogin(naverUser, transactionManager);
+
+    if (!loginResult.type) {
+      return { message: '약관동의를 완료해주세요', result: loginResult };
+    }
+
+    const { type, isNameExist, accessToken, refreshToken, refreshOption } = loginResult;
+
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
@@ -106,8 +130,29 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiBearerAuthRefreshToken()
+  @ApiDescription('약관동의 완료 후 호출할 API - New 유저에 해당')
+  @ApiResponseCreated()
+  @ApiResponseErrorConflict('이미 가입된 유저')
+  @UseInterceptors(TransactionInterceptor)
+  @Post('termsagree')
+  async completeTermsAgree(
+    @TransactionManager() transactionManager,
+    @Body() dto: UserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string; result: any }> {
+    const { type, isNameExist, accessToken, refreshToken, refreshOption } = await this.authService.newUserLogin(
+      dto,
+      transactionManager,
+    );
+    res.header('Authorization', `Bearer ${accessToken}`);
+    res.cookie('Refresh-Token', refreshToken, refreshOption);
+
+    const result = { type, isNameExist, accessToken, refreshToken };
+    return { message: '새로운 유저가 성공적으로 로그인 되었습니다', result };
+  }
+
   @ApiDescription('엑세스 토큰 리프레시(엑세스 토큰이 만료되었을 경우 해당 API로 엑세스 토큰 갱신')
+  @ApiBearerAuthRefreshToken()
   @ApiResponseSuccess()
   @ApiResponseErrorBadRequest('Refresh Token이 없거나 형식에 어긋날 때')
   @ApiResponseErrorUnauthorized('Refresh Token 만료')
