@@ -14,7 +14,7 @@ export const ApiTagUser = () => ApiTags('USER');
 
 export const ApiTagAuth = () => ApiTags('AUTH');
 
-export const ApiDescription = (summary: string) => ApiOperation({ summary });
+export const ApiDescription = (summary: string, description?: string) => ApiOperation({ summary, description });
 
 export const ApiBearerAuthAccessToken = () => ApiBearerAuth('access-token');
 
@@ -43,16 +43,50 @@ export const ApiResponseCreated = () => ApiResponse({ status: 201, description: 
 
 export const ApiResponseLoginSuccess = () =>
   ApiCreatedResponse({
-    description: 'type: new -> 새로운 회원, exist -> 기존 회원',
-    schema: {
-      example: {
-        statusCode: 200,
-        message: '로그인 성공했습니다',
-        data: {
-          type: 'exist',
-          isNameExist: 'false',
-          accessToken: 'e~',
-          refreshToken: 'e~',
+    description: 'New 유저는 유저 정보가 반환되고, 기존(exist) 회원은 로그인 성공 및 토큰이 발급됩니다.',
+    content: {
+      'application/json': {
+        examples: {
+          예시1: {
+            description: '기존 회원인 경우 응답값',
+            value: {
+              statusCode: 200,
+              message: '로그인 성공했습니다',
+              data: {
+                type: 'exist',
+                isNameExist: 'false',
+                accessToken: 'e~',
+                refreshToken: 'e~',
+              },
+            },
+          },
+          예시2: {
+            description: 'New 회원인 경우 응답값',
+            value: {
+              statusCode: 200,
+              message: '약관동의를 완료해주세요',
+              data: { provider: 'kakao', providerId: '328713XXX', name: '이승현', email: 'sng11130@daum.net' },
+            },
+          },
+        },
+      },
+    },
+  });
+
+export const ApiResponseCompleteTermSuccess = () =>
+  ApiCreatedResponse({
+    description: '약관동의 완료 시, 가입 및 로그인이 완료됩니다',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 201,
+          message: '새로운 유저가 성공적으로 로그인 되었습니다',
+          data: {
+            type: 'new',
+            isNameExist: false,
+            accessToken: 'eyJhbGciO~~',
+            refreshToken: 'eyJhbGciO~~',
+          },
         },
       },
     },

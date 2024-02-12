@@ -29,8 +29,8 @@ import {
   ApiResponseErrorBadRequest,
   ApiResponseErrorUnauthorized,
   ApiBearerAuthAccessToken,
-  ApiResponseCreated,
   ApiResponseErrorConflict,
+  ApiResponseCompleteTermSuccess,
 } from 'src/utils/decorators';
 import { UserDto } from './dto/user.dto';
 
@@ -39,7 +39,7 @@ import { UserDto } from './dto/user.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiDescription('구글 로그인')
+  @ApiDescription('구글 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
   @ApiResponseLoginSuccess()
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
@@ -69,7 +69,7 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription('카카오 로그인')
+  @ApiDescription('카카오 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
   @ApiResponseLoginSuccess()
   @UseGuards(KakaoAuthGuard)
   @Get('kakao/login')
@@ -100,7 +100,7 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription('네이버 로그인')
+  @ApiDescription('네이버 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
   @ApiResponseLoginSuccess()
   @UseGuards(NaverAuthGuard)
   @Get('naver/login')
@@ -130,8 +130,11 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription('약관동의 완료 후 호출할 API - New 유저에 해당')
-  @ApiResponseCreated()
+  @ApiDescription(
+    '약관동의 완료 후 호출할 API - New 유저에 해당',
+    '소셜 로그인 api 호출 후 반환되는 유저 정보 객체를 그대로 해당 API의 body에 넣으시면 됩니다',
+  )
+  @ApiResponseCompleteTermSuccess()
   @ApiResponseErrorConflict('이미 가입된 유저')
   @UseInterceptors(TransactionInterceptor)
   @Post('termsagree')
