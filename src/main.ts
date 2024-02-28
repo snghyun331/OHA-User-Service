@@ -7,8 +7,10 @@ import { SwaggerConfig } from './configs/swagger.config';
 import { SwaggerModule } from '@nestjs/swagger';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ValidationPipe } from '@nestjs/common';
+import { eurekaClient } from './configs/eureka.config';
 
 const port = process.env.PORT1 || process.env.PORT2;
+const env = process.env.NODE_ENV;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -40,6 +42,10 @@ async function bootstrap() {
   // run server
   try {
     await app.listen(port);
+    if (env === 'product') {
+      eurekaClient.logger.level('log');
+      eurekaClient.start();
+    }
     winstonLogger.log(`Server is running on http port ${port}`);
   } catch (error) {
     winstonLogger.error('Failed to start the app server');
