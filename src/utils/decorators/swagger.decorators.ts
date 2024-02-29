@@ -115,6 +115,22 @@ export const ApiResponseCompleteTermSuccess = () =>
     },
   });
 
+export const ApiResponseProfileUpload = () =>
+  ApiResponse({
+    description: '프로필 업로드 시 반환되는 이미지 url은 외부에서 바로 접근할 수 있습니다',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 200,
+          message: '성공적으로 프로필이 업데이트 되었습니다',
+          data: {
+            imageUrl: 'http://152.67.219.168/files/user/1709225081462.jpg',
+          },
+        },
+      },
+    },
+  });
+
 export const ApiResponseErrorBadRequest = (des: string) => ApiResponse({ status: 400, description: des });
 
 export const ApiResponseErrorUnauthorized = (des: string) => ApiResponse({ status: 401, description: des });

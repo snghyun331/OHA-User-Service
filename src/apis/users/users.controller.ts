@@ -18,6 +18,7 @@ import {
   ApiResponseErrorNotFound,
   ApiResponseSuccess,
   ApiTagUser,
+  ApiResponseProfileUpload,
 } from 'src/utils/decorators';
 
 @ApiTagUser()
@@ -46,7 +47,7 @@ export class UsersController {
   @ApiBearerAuthAccessToken()
   @ApiConsumesMultiForm()
   @ApiBodyImageForm('profileImage')
-  @ApiResponseSuccess()
+  @ApiResponseProfileUpload()
   @ApiResponseErrorBadRequest('사용자는 존재하나 업데이트 영향을 받은 필드가 없음(업데이트 X)')
   @ApiResponseErrorNotFound('존재하지 않는 사용자')
   @UseGuards(JwtAuthGuard)
@@ -63,7 +64,8 @@ export class UsersController {
 
   @ApiDescription('프로필 사진 삭제')
   @ApiBearerAuthAccessToken()
-  @ApiResponseErrorNotFound('프로필이 이미 삭제되었거나 존재하지 않음')
+  @ApiResponseSuccess()
+  @ApiResponseErrorNotFound('존재하지 않는 사용자, 프로필이 이미 삭제되었거나 존재하지 않음')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @Put('image/profile-delete')
