@@ -81,7 +81,7 @@ pipeline {
                     }
                 }
                 sh 'docker build -t oha_user .'
-                sh 'mkdir -p /home/upload'
+                sh 'mkdir -p /home/upload/user'
                 sh 'docker run -d -p 3000:3000 --name user -v /home/upload:/home/upload oha_user'
             }
         }
