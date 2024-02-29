@@ -1,11 +1,10 @@
-import { Body, Controller, Get, Param, Post, Put, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { UsersService } from './users.service';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
 import { JwtAuthGuard } from 'src/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
 import {
   GetUserId,
   GetUserProviderId,
@@ -14,7 +13,6 @@ import {
   ApiBodyImageForm,
   ApiConsumesMultiForm,
   ApiDescription,
-  ApiParamDescription,
   ApiResponseErrorBadRequest,
   ApiResponseErrorConflict,
   ApiResponseErrorNotFound,
@@ -63,14 +61,18 @@ export class UsersController {
     return { message: '성공적으로 프로필이 업데이트 되었습니다', result };
   }
 
-  @ApiDescription('이미지 확인하기')
+  @ApiDescription('프로필 사진 삭제')
   @ApiBearerAuthAccessToken()
-  @ApiParamDescription('filename', '(예) 170605242.png')
+  @ApiResponseErrorNotFound('프로필이 이미 삭제되었거나 존재하지 않음')
   @UseGuards(JwtAuthGuard)
-  @Get('uploads/:filename')
-  async getImage(@Param('filename') filename: string, @Res() res: Response): Promise<{ message: string }> {
-    res.sendFile(filename, { root: 'uploads' });
-    return { message: '이미지를 성공적으로 가져왔습니다' };
+  @UseInterceptors(TransactionInterceptor)
+  @Put('image/profile-delete')
+  async deleteProfile(
+    @GetUserId() userId: number,
+    @TransactionManager() transactionManager,
+  ): Promise<{ message: string }> {
+    await this.userService.deleteProfile(userId, transactionManager);
+    return { message: '성공적으로 프로필이 삭제되었습니다.' };
   }
 
   @ApiDescription('현재 사용자 정보 조히')
