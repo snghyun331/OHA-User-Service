@@ -42,30 +42,11 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException('존재하지 않는 사용자입니다');
       }
-      const url = `http://${this.configService.get('HOST')}:${+this.configService.get(
-        'PORT1',
-      )}/api/user/uploads/${filename}`;
+      // const url = `http://${this.configService.get('HOST')}:${+this.configService.get(
+      //   'PORT1',
+      // )}/api/user/uploads/${filename}`;
+      const url = `http://${this.configService.get('HOST')}/files/user/${filename}`;
       const result = await transactionManager.update(UserEntity, userId, { profileUrl: url });
-      if (result.affected === 0) {
-        throw new BadRequestException('Profile update failed: Invalid input data');
-      }
-      return { imageUrl: url };
-    } catch (e) {
-      this.logger.error(e);
-      throw e;
-    }
-  }
-
-  async uploadBGImage(userId: number, filename: string, transactionManager: EntityManager) {
-    try {
-      const user = await this.usersRepository.findOne({ where: { userId } });
-      if (!user) {
-        throw new NotFoundException('존재하지 않는 사용자입니다');
-      }
-      const url = `http://${this.configService.get('HOST')}:${+this.configService.get(
-        'PORT1',
-      )}/api/user/uploads/${filename}`;
-      const result = await transactionManager.update(UserEntity, userId, { backgroundUrl: url });
       if (result.affected === 0) {
         throw new BadRequestException('Profile update failed: Invalid input data');
       }

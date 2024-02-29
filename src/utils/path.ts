@@ -1,4 +1,4 @@
-export const UPLOAD_PATH = 'uploads';
+export const UPLOAD_PATH = '/home/upload/user';
 
 export const GETNAMEBYCODES_PATH = `http://${process.env.Eureka_HOST}/api/common/location/getnamebycodes`;
 

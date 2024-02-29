@@ -63,25 +63,6 @@ export class UsersController {
     return { message: '성공적으로 프로필이 업데이트 되었습니다', result };
   }
 
-  @ApiDescription('배경 시잔 업데이트')
-  @ApiBearerAuthAccessToken()
-  @ApiConsumesMultiForm()
-  @ApiBodyImageForm('backgroundImage')
-  @ApiResponseSuccess()
-  @ApiResponseErrorBadRequest('사용자는 존재하나 업데이트 영향을 받은 필드가 없음(업데이트 X)')
-  @ApiResponseErrorNotFound('존재하지 않는 사용자')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(TransactionInterceptor, FileInterceptor('backgroundImage'))
-  @Put('image/background')
-  async updateBGImage(
-    @GetUserId() userId: number,
-    @TransactionManager() transactionManager,
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.uploadBGImage(userId, file.filename, transactionManager);
-    return { message: '성공적으로 배경 이미지가 업데이트 되었습니다', result };
-  }
-
   @ApiDescription('이미지 확인하기')
   @ApiBearerAuthAccessToken()
   @ApiParamDescription('filename', '(예) 170605242.png')
