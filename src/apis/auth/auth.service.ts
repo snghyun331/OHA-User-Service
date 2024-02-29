@@ -36,6 +36,7 @@ export class AuthService {
       let type: string;
       let result: any;
       let isNameExist: boolean;
+      let userInfo: object;
       const { providerId } = socialUser;
       const providerType = await this.getProviderType(socialUser);
       const user = await this.usersRepository.findOne({ where: { providerType, providerId } });
@@ -52,8 +53,17 @@ export class AuthService {
           isNameExist = true;
         }
         type = 'exist';
+        userInfo = {
+          providerType: user.providerType,
+          email: user.email,
+          name: user.name,
+          profileUrl: user.profileUrl,
+          isWithdraw: user.isWithdraw,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        };
       }
-      return { type, isNameExist, ...result };
+      return { type, isNameExist, ...result, userInfo };
     } catch (e) {
       this.logger.error(e);
       throw e;
@@ -74,7 +84,16 @@ export class AuthService {
       await this.createDefaultDistrict(accessToken, newUser);
       const type = 'new';
       const isNameExist = false;
-      return { type, isNameExist, ...result };
+      const userInfo = {
+        providerType: newUser.providerType,
+        email: newUser.email,
+        name: newUser.name,
+        profileUrl: newUser.profileUrl,
+        isWithdraw: newUser.isWithdraw,
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt,
+      };
+      return { type, isNameExist, ...result, userInfo };
     } catch (e) {
       this.logger.error(e);
       if (e.response && e.response.data) {

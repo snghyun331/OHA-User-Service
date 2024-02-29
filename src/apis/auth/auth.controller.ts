@@ -60,12 +60,12 @@ export class AuthController {
       return { message: '약관동의를 완료해주세요', result: loginResult };
     }
 
-    const { type, isNameExist, accessToken, refreshToken, refreshOption } = loginResult;
+    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, isNameExist, accessToken, refreshToken };
+    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -91,12 +91,12 @@ export class AuthController {
       return { message: '약관동의를 완료해주세요', result: loginResult };
     }
 
-    const { type, isNameExist, accessToken, refreshToken, refreshOption } = loginResult;
+    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, isNameExist, accessToken, refreshToken };
+    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -121,12 +121,12 @@ export class AuthController {
       return { message: '약관동의를 완료해주세요', result: loginResult };
     }
 
-    const { type, isNameExist, accessToken, refreshToken, refreshOption } = loginResult;
+    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, isNameExist, accessToken, refreshToken };
+    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -143,14 +143,12 @@ export class AuthController {
     @Body() dto: UserDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { type, isNameExist, accessToken, refreshToken, refreshOption } = await this.authService.newUserLogin(
-      dto,
-      transactionManager,
-    );
+    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } =
+      await this.authService.newUserLogin(dto, transactionManager);
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, isNameExist, accessToken, refreshToken };
+    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
     return { message: '새로운 유저가 성공적으로 로그인 되었습니다', result };
   }
 

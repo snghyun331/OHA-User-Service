@@ -13,6 +13,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
+import { unlink } from 'fs/promises';
+import { UPLOAD_PATH } from 'src/utils/path';
 
 @Injectable()
 export class UsersService {
@@ -38,14 +40,16 @@ export class UsersService {
 
   async uploadProfile(userId: number, filename: string, transactionManager: EntityManager) {
     try {
+      if (!filename) {
+        throw new BadRequestException('요청한 프로필이 없습니다');
+      }
       const user = await this.usersRepository.findOne({ where: { userId } });
+      console.log(user);
       if (!user) {
         throw new NotFoundException('존재하지 않는 사용자입니다');
       }
-      // const url = `http://${this.configService.get('HOST')}:${+this.configService.get(
-      //   'PORT1',
-      // )}/api/user/uploads/${filename}`;
-      const url = `http://${this.configService.get('HOST')}/files/user/${filename}`;
+      const url = `http://${this.configService.get('Eureka_HOST')}/files/user/${filename}`;
+      console.log(url);
       const result = await transactionManager.update(UserEntity, userId, { profileUrl: url });
       if (result.affected === 0) {
         throw new BadRequestException('Profile update failed: Invalid input data');
@@ -99,6 +103,22 @@ export class UsersService {
         }
       }
       return users;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+
+  async deleteProfile(userId: number, transactionManager: EntityManager) {
+    try {
+      const user = await this.usersRepository.findOne({ where: { userId } });
+      const userProfile = user.profileUrl;
+      if (userProfile === null) {
+        throw new NotFoundException('프로필이 이미 삭제되었거나 존재하지 않습니다');
+      }
+      await transactionManager.update(UserEntity, userId, { profileUrl: null });
+      await unlink(UPLOAD_PATH);
+      return;
     } catch (e) {
       this.logger.error(e);
       throw e;
