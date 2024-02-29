@@ -43,7 +43,7 @@ export class UsersController {
     return { message: '닉네임이 성공적으로 업데이트 되었습니다.' };
   }
 
-  @ApiDescription('프로필 시잔 업데이트')
+  @ApiDescription('프로필 사진 업데이트')
   @ApiBearerAuthAccessToken()
   @ApiConsumesMultiForm()
   @ApiBodyImageForm('profileImage')
@@ -77,7 +77,7 @@ export class UsersController {
     return { message: '성공적으로 프로필이 삭제되었습니다.' };
   }
 
-  @ApiDescription('현재 사용자 정보 조히')
+  @ApiDescription('현재 사용자 정보 조회')
   @ApiBearerAuthAccessToken()
   @ApiResponseSuccess()
   @ApiResponseErrorNotFound('존재하지 않는 사용자')
