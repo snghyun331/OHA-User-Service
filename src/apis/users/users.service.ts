@@ -66,12 +66,16 @@ export class UsersService {
     }
   }
 
-  async getUser(userId: number, providerId: string) {
+  async getUser(userId: number) {
     try {
-      const user = this.usersRepository.findOne({ where: { userId, providerId } });
+      const user = await this.usersRepository.findOne({
+        where: { userId },
+        select: ['userId', 'providerType', 'name', 'email', 'profileUrl', 'isWithdraw', 'createdAt', 'updatedAt'],
+      });
       if (!user) {
         throw new NotFoundException('존재하지 않는 사용자입니다');
       }
+
       return user;
     } catch (e) {
       this.logger.error(e);
@@ -81,7 +85,9 @@ export class UsersService {
 
   async getUsers() {
     try {
-      const allUsers = await this.usersRepository.find({});
+      const allUsers = await this.usersRepository.find({
+        select: ['userId', 'providerType', 'name', 'email', 'profileUrl', 'isWithdraw', 'createdAt', 'updatedAt'],
+      });
       return allUsers;
     } catch (e) {
       this.logger.error(e);
@@ -97,6 +103,7 @@ export class UsersService {
       }
       const users = await manager.getRepository(UserEntity).find({
         where: { userId: In(userIds) },
+        select: ['userId', 'providerType', 'name', 'email', 'profileUrl', 'isWithdraw', 'createdAt', 'updatedAt'],
       });
 
       if (users.length !== userIds.length) {
