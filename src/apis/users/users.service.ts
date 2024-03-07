@@ -49,10 +49,13 @@ export class UsersService {
         throw new NotFoundException('존재하지 않는 사용자입니다');
       }
       const userProfile = user.profileUrl;
+
+      // 기존 프로필 사진이 존재할 경우
       if (userProfile !== null) {
-        const fileName = userProfile.split('/').pop();
-        await unlink(`${UPLOAD_PATH}/${fileName}`);
+        const userProfileName = userProfile.split('/').pop();
+        await unlink(`${UPLOAD_PATH}/${userProfileName}`);
       }
+
       const url = `http://${this.configService.get('Eureka_HOST')}/files/user/${filename}`;
 
       const result = await transactionManager.update(UserEntity, userId, { profileUrl: url });
