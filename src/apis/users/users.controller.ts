@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { UsersService } from './users.service';
@@ -7,7 +7,6 @@ import { JwtAuthGuard } from 'src/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   GetUserId,
-  GetUserProviderId,
   TransactionManager,
   ApiBearerAuthAccessToken,
   ApiBodyImageForm,
@@ -19,6 +18,7 @@ import {
   ApiResponseSuccess,
   ApiTagUser,
   ApiResponseProfileUpload,
+  ApiParamDescription,
 } from 'src/utils/decorators';
 
 @ApiTagUser()
@@ -83,11 +83,8 @@ export class UsersController {
   @ApiResponseErrorNotFound('존재하지 않는 사용자')
   @UseGuards(JwtAuthGuard)
   @Get('myinfo')
-  async getMyInfo(
-    @GetUserId() userId: number,
-    @GetUserProviderId() providerId: string,
-  ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getUser(userId, providerId);
+  async getMyInfo(@GetUserId() userId: number): Promise<{ message: string; result: any }> {
+    const result = await this.userService.getUser(userId);
     return { message: '내 정보를 성공적으로 가져왔습니다', result };
   }
 
@@ -112,5 +109,15 @@ export class UsersController {
   ): Promise<{ message: string; result: any }> {
     const result = await this.userService.getSpecificUsers(dto, transactionManager);
     return { message: '요청한 유저들의 정보를 성공적으로 가져왔습니다', result };
+  }
+
+  @ApiDescription('특정 사용자 한명 정보 조회')
+  @ApiParamDescription('userId', '숫자로 입력해주세요')
+  @ApiBearerAuthAccessToken()
+  @UseGuards(JwtAuthGuard)
+  @Get('specificuser/:userId')
+  async getSpecificUser(@Param('userId') userId: number): Promise<{ message: string; result: any }> {
+    const result = await this.userService.getUser(userId);
+    return { message: '요청한 유저의 정보를 성공적으로 가져왔습니다', result };
   }
 }
