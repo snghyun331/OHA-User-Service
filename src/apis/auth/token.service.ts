@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces';
 import { SALT_ROUND } from 'src/utils/constant';
 import * as bcrypt from 'bcryptjs';
+import * as CryptoJS from 'crypto-js';
 
 @Injectable()
 export class TokenService {
@@ -60,8 +61,13 @@ export class TokenService {
     };
   }
 
-  async hashFCMToken(fcmToken: string) {
-    const hashedFCM = await bcrypt.hash(fcmToken, SALT_ROUND);
-    return hashedFCM;
+  async encryptFCMToken(fcmToken: string) {
+    const encryptedFCM = await CryptoJS.AES.encrypt(fcmToken, this.configService.get('ENCRYPT_SECRET_KEY')).toString();
+    return encryptedFCM;
+  }
+
+  async decrypt(encryptedFCM: string) {
+    const bytes = CryptoJS.AES.decrypt(encryptedFCM, this.configService.get('ENCRYPT_SECRET_KEY'));
+    return bytes.toString(CryptoJS.enc.Utf8);
   }
 }

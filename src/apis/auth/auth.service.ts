@@ -112,7 +112,7 @@ export class AuthService {
 
   async socialLogout(userId: number, transactionManager: EntityManager) {
     try {
-      await transactionManager.update(UserEntity, userId, { hashedRF: null, hashedFCM: null, FCMTimestamp: null });
+      await transactionManager.update(UserEntity, userId, { hashedRF: null, encryptedFCM: null, FCMTimestamp: null });
       const result = await this.tokenService.removeCookiesForLogout();
       return result;
     } catch (e) {
@@ -192,9 +192,9 @@ export class AuthService {
   async createFCM(userId: number, dto: FCMDto, transactionManager: EntityManager) {
     try {
       const { fcmToken } = dto;
-      const hashedFCM = await this.tokenService.hashFCMToken(fcmToken);
+      const encryptedFCM = await this.tokenService.encryptFCMToken(fcmToken);
       const FCMTimestamp = moment().tz('Asia/Seoul');
-      await transactionManager.update(UserEntity, userId, { hashedFCM, FCMTimestamp });
+      await transactionManager.update(UserEntity, userId, { encryptedFCM, FCMTimestamp });
       // const test = await transactionManager.findOne(UserEntity, { where: { userId } });
       // const nineHoursInMillis = 9 * 60 * 60 * 1000;
       // console.log(new Date(test.FCMTimestamp.getTime() + nineHoursInMillis));

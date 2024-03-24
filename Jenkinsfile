@@ -22,6 +22,7 @@ pipeline {
         JWT_REFRESH_SECRET_KEY = credentials('jwt_refresh_secret_key')
         JWT_ACCESS_EXPIRATION_TIME = credentials('jwt_access_expiration_time')
         JWT_REFRESH_EXPIRATION_TIME = credentials('jwt_refresh_expiration_time')
+        ENCRYPT_SECRET_KEY = credentials('encrypt_secret_key')
         Eureka_HOST = credentials('eureka_host')
         Eureka_PORT = credentials('eureka_port')
     }
@@ -75,6 +76,7 @@ pipeline {
                             echo "JWT_REFRESH_SECRET_KEY=${JWT_REFRESH_SECRET_KEY}" >> .product.env
                             echo "JWT_ACCESS_EXPIRATION_TIME=${JWT_ACCESS_EXPIRATION_TIME}" >> .product.env
                             echo "JWT_REFRESH_EXPIRATION_TIME=${JWT_REFRESH_EXPIRATION_TIME}" >> .product.env
+                            echo "ENCRYPT_SECRET_KEY=${ENCRYPT_SECRET_KEY}" >> .product.env
                             echo "Eureka_HOST=${Eureka_HOST}" >> .product.env
                             echo "Eureka_PORT=${Eureka_PORT}" >> .product.env
                         '''
