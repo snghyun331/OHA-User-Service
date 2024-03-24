@@ -19,6 +19,8 @@ import { TokenService } from './token.service';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { UserDto } from './dto/user.dto';
+import { FCMDto } from './dto/fcm.dto';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class AuthService {
@@ -110,7 +112,7 @@ export class AuthService {
 
   async socialLogout(userId: number, transactionManager: EntityManager) {
     try {
-      await transactionManager.update(UserEntity, userId, { hashedRF: null });
+      await transactionManager.update(UserEntity, userId, { hashedRF: null, hashedFCM: null, FCMTimestamp: null });
       const result = await this.tokenService.removeCookiesForLogout();
       return result;
     } catch (e) {
@@ -185,6 +187,21 @@ export class AuthService {
   async getCookieWithAccessToken(userId: number, providerId: string) {
     const result = await this.tokenService.generateCookieWithAccessToken(userId, providerId);
     return result;
+  }
+
+  async createFCM(userId: number, dto: FCMDto, transactionManager: EntityManager) {
+    try {
+      const { fcmToken } = dto;
+      const hashedFCM = await this.tokenService.hashFCMToken(fcmToken);
+      const FCMTimestamp = moment().tz('Asia/Seoul');
+      await transactionManager.update(UserEntity, userId, { hashedFCM, FCMTimestamp });
+      // const test = await transactionManager.findOne(UserEntity, { where: { userId } });
+      // const nineHoursInMillis = 9 * 60 * 60 * 1000;
+      // console.log(new Date(test.FCMTimestamp.getTime() + nineHoursInMillis));
+      return;
+    } catch (e) {
+      this.logger.error(e);
+    }
   }
 
   private async getProviderType(user: GoogleUser | KakaoUser | NaverUser) {

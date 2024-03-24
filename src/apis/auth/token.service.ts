@@ -40,12 +40,12 @@ export class TokenService {
     return result;
   }
 
-  async hashRefreshToken(refreshToken) {
+  async hashRefreshToken(refreshToken: string) {
     const hashedRf = await bcrypt.hash(refreshToken, SALT_ROUND);
     return hashedRf;
   }
 
-  async isRefreshTokenMatch(refreshToken, hashedRF) {
+  async isRefreshTokenMatch(refreshToken: string, hashedRF: string) {
     const result = await bcrypt.compare(refreshToken, hashedRF);
     return result;
   }
@@ -58,5 +58,10 @@ export class TokenService {
         maxAge: 0,
       },
     };
+  }
+
+  async hashFCMToken(fcmToken: string) {
+    const hashedFCM = await bcrypt.hash(fcmToken, SALT_ROUND);
+    return hashedFCM;
   }
 }

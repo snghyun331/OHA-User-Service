@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   Delete,
   Body,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
@@ -33,6 +34,7 @@ import {
   ApiResponseCompleteTermSuccess,
 } from 'src/utils/decorators';
 import { UserDto } from './dto/user.dto';
+import { FCMDto } from './dto/fcm.dto';
 
 @ApiTagAuth()
 @Controller('api/auth')
@@ -202,5 +204,19 @@ export class AuthController {
     const { refreshOption } = await this.authService.deleteUserAndLogout(userId, providerId, transactionManager);
     res.cookie('Refresh-Token', '', refreshOption);
     return { message: '성공적으로 탈퇴되었습니다' };
+  }
+
+  @ApiDescription('FCM 토큰 전송 API', 'body로 오는 fcm 토큰은 fcm 토큰 생성 시간과 함께 DB에 저장됩니다.')
+  @ApiBearerAuthAccessToken()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TransactionInterceptor)
+  @Put('fcm-token')
+  async sendFCM(
+    @GetUserId() userId: number,
+    @Body() dto: FCMDto,
+    @TransactionManager() transactionManager,
+  ): Promise<{ message: string }> {
+    await this.authService.createFCM(userId, dto, transactionManager);
+    return { message: '성공' };
   }
 }
