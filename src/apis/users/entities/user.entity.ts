@@ -19,7 +19,7 @@ export class UserEntity {
   hashedRF: string;
 
   @Column({ type: 'varchar', nullable: true })
-  hashedFCM: string;
+  encryptedFCM: string;
 
   @Column({ type: 'timestamptz', nullable: true })
   FCMTimestamp: Date;
