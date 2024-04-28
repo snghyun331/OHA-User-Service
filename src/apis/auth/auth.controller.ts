@@ -15,7 +15,14 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
 import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
-import { JwtAuthGuard, JwtRefreshAuthGuard, GoogleAuthGuard, KakaoAuthGuard, NaverAuthGuard } from 'src/guards';
+import {
+  JwtAuthGuard,
+  JwtRefreshAuthGuard,
+  GoogleAuthGuard,
+  KakaoAuthGuard,
+  NaverAuthGuard,
+  AppleAuthGuard,
+} from 'src/guards';
 import {
   GetUser,
   GetUserId,
@@ -33,7 +40,6 @@ import {
   ApiResponseErrorConflict,
   ApiResponseCompleteTermSuccess,
 } from 'src/utils/decorators';
-import { UserDto } from './dto/user.dto';
 import { FCMDto } from './dto/fcm.dto';
 
 @ApiTagAuth()
@@ -57,17 +63,17 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const loginResult = await this.authService.handleSocialLogin(googleUser, transactionManager);
-
-    if (!loginResult.type) {
-      return { message: '약관동의를 완료해주세요', result: loginResult };
-    }
-
-    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    const { isJoined, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    const result = { isJoined, isNameExist, accessToken, refreshToken, userInfo };
+    console.log(result);
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
+    if (isJoined === false) {
+      return { message: '약관동의를 완료해주세요.', result };
+    }
+
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -89,16 +95,16 @@ export class AuthController {
   ): Promise<{ message: string; result: any }> {
     const loginResult = await this.authService.handleSocialLogin(kakaoUser, transactionManager);
 
-    if (!loginResult.type) {
-      return { message: '약관동의를 완료해주세요', result: loginResult };
-    }
-
-    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    const { isJoined, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    const result = { isJoined, isNameExist, accessToken, refreshToken, userInfo };
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
+    if (isJoined === false) {
+      return { message: '약관동의를 완료해주세요.', result };
+    }
+
     return { message: '로그인 성공했습니다', result };
   }
 
@@ -119,39 +125,57 @@ export class AuthController {
   ): Promise<{ message: string; result: any }> {
     const loginResult = await this.authService.handleSocialLogin(naverUser, transactionManager);
 
-    if (!loginResult.type) {
-      return { message: '약관동의를 완료해주세요', result: loginResult };
-    }
-
-    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    const { isJoined, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    const result = { isJoined, isNameExist, accessToken, refreshToken, userInfo };
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
 
-    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
+    if (isJoined === false) {
+      return { message: '약관동의를 완료해주세요.', result };
+    }
+
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription(
-    '약관동의 완료 후 호출할 API - New 유저에 해당',
-    '소셜 로그인 api 호출 후 반환되는 유저 정보 객체를 그대로 해당 API의 body에 넣으시면 됩니다',
-  )
-  @ApiResponseCompleteTermSuccess()
-  @ApiResponseErrorConflict('이미 가입된 유저')
-  @UseInterceptors(TransactionInterceptor)
-  @Post('termsagree')
-  async completeTermsAgree(
-    @TransactionManager() transactionManager,
-    @Body() dto: UserDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ message: string; result: any }> {
-    const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } =
-      await this.authService.newUserLogin(dto, transactionManager);
-    res.header('Authorization', `Bearer ${accessToken}`);
-    res.cookie('Refresh-Token', refreshToken, refreshOption);
+  // @ApiDescription('애플 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
+  // @ApiResponseLoginSuccess()
+  // @UseGuards(AppleAuthGuard)
+  // @Get('apple/login')
+  // async appleLogin(): Promise<void> {}
 
-    const result = { type, isNameExist, accessToken, refreshToken, userInfo };
-    return { message: '새로운 유저가 성공적으로 로그인 되었습니다', result };
+  // @ApiExclude()
+  // @UseInterceptors(TransactionInterceptor)
+  // @UseGuards(AppleAuthGuard)
+  // @Get('apple/callback')
+  // async appleCallback(
+  //   @TransactionManager() transactionManager,
+  //   // @GetUser() naverUser: NaverUser,
+  //   @Res({ passthrough: true }) res: Response,
+  // ): Promise<{ message: string }> {
+  //   // const loginResult = await this.authService.handleSocialLogin(naverUser, transactionManager);
+  //   // if (!loginResult.type) {
+  //   //   return { message: '약관동의를 완료해주세요', result: loginResult };
+  //   // }
+  //   // const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+  //   // res.header('Authorization', `Bearer ${accessToken}`);
+  //   // res.cookie('Refresh-Token', refreshToken, refreshOption);
+  //   // const result = { type, isNameExist, accessToken, refreshToken, userInfo };
+  //   return { message: '로그인 성공했습니다' };
+  // }
+
+  @ApiDescription('약관동의 완료 후 호출할 API - 아직 가입 안한 유저(isJoined: false)에 해당')
+  @ApiResponseCompleteTermSuccess()
+  @ApiBearerAuthAccessToken()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(TransactionInterceptor)
+  @Put('termsagree')
+  async completeTermsAgree(
+    @GetUserId() userId: number,
+    @TransactionManager() transactionManager,
+  ): Promise<{ message: string }> {
+    await this.authService.updateJoinStatus(userId, transactionManager);
+    return { message: '해당 유저에 대한 약관동의가 완료되었습니다.' };
   }
 
   @ApiDescription('엑세스 토큰 리프레시(엑세스 토큰이 만료되었을 경우 해당 API로 엑세스 토큰 갱신')
@@ -163,10 +187,10 @@ export class AuthController {
   @Get('refresh')
   async refreshAccessToken(
     @GetUserId() userId: number,
-    @GetUserProviderId() googleId: string,
+    @GetUserProviderId() providerId: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
-    const { accessToken } = await this.authService.getCookieWithAccessToken(userId, googleId);
+    const { accessToken } = await this.authService.getCookieWithAccessToken(userId, providerId);
     res.header('Authorization', `Bearer ${accessToken}`);
     const result = { accessToken };
     return { message: '성공적으로 access 토큰이 갱신되었습니다', result };

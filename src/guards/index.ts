@@ -7,3 +7,5 @@ export * from './social/google-auth.guard';
 export * from './social/kakao-auth.guard';
 
 export * from './social/naver-auth.guard';
+
+export * from './social/apple-auth.guard';

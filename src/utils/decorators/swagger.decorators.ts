@@ -43,7 +43,8 @@ export const ApiResponseCreated = () => ApiResponse({ status: 201, description: 
 
 export const ApiResponseLoginSuccess = () =>
   ApiCreatedResponse({
-    description: 'New 유저는 유저 정보가 반환되고, 기존(exist) 회원은 로그인 성공 및 토큰이 발급됩니다.',
+    description:
+      '기존 가입(isJoined: true) 회원은 로그인 성공 및 토큰이 발급됩니다. 아직 가입이 되지 않은 유저(isJoined: false)는 악관동의 필요 메세지와 함께 토큰 및 유저 정보가 반환됩니다.',
     content: {
       'application/json': {
         examples: {
@@ -53,18 +54,17 @@ export const ApiResponseLoginSuccess = () =>
               statusCode: 200,
               message: '로그인 성공했습니다',
               data: {
-                type: 'exist',
-                isNameExist: true,
-                accessToken: 'eyJhbGciOiJ',
-                refreshToken: 'eyJhbGciOiJ',
+                isJoined: true,
+                isNameExist: false,
+                accessToken: 'e',
+                refreshToken: 'e',
                 userInfo: {
                   providerType: 'GOOGLE',
-                  email: 'snghyun331@gmail.com',
-                  name: 'もんぺ.2',
+                  email: 'snghyun0331@gmail.com',
+                  name: null,
                   profileUrl: null,
-                  isWithdraw: false,
-                  createdAt: '2024-02-07T06:06:40.729Z',
-                  updatedAt: '2024-02-29T12:48:06.732Z',
+                  createdAt: '2024-04-28T11:11:19.273Z',
+                  updatedAt: '2024-04-28T11:38:19.942Z',
                 },
               },
             },
@@ -73,20 +73,19 @@ export const ApiResponseLoginSuccess = () =>
             description: 'New 회원인 경우 응답값',
             value: {
               statusCode: 200,
-              message: '새로운 유저가 성공적으로 로그인 되었습니다',
+              message: '약관동의를 완료해주세요.',
               data: {
-                type: 'new',
+                isJoined: false,
                 isNameExist: false,
-                accessToken: 'eyJhbGciOiJ',
-                refreshToken: 'eyJhbGciOiJ',
+                accessToken: 'e',
+                refreshToken: 'e',
                 userInfo: {
                   providerType: 'GOOGLE',
-                  email: 'snghyun331@gmail.com',
+                  email: 'snghyun0331@gmail.com',
                   name: null,
                   profileUrl: null,
-                  isWithdraw: false,
-                  createdAt: '2024-02-07T06:06:40.729Z',
-                  updatedAt: '2024-02-29T12:48:06.732Z',
+                  createdAt: '2024-04-28T11:11:19.273Z',
+                  updatedAt: '2024-04-28T11:11:19.273Z',
                 },
               },
             },
@@ -97,19 +96,13 @@ export const ApiResponseLoginSuccess = () =>
   });
 
 export const ApiResponseCompleteTermSuccess = () =>
-  ApiCreatedResponse({
-    description: '약관동의 완료 시, 가입 및 로그인이 완료됩니다',
+  ApiResponse({
+    description: '약관동의 완료 API (isJoined 속성이 true(가입완료)로 변경됩니다',
     content: {
       'application/json': {
         example: {
-          statusCode: 201,
-          message: '새로운 유저가 성공적으로 로그인 되었습니다',
-          data: {
-            type: 'new',
-            isNameExist: false,
-            accessToken: 'eyJhbGciO~~',
-            refreshToken: 'eyJhbGciO~~',
-          },
+          statusCode: 200,
+          message: '해당 유저에 대한 약관동의가 완료되었습니다.',
         },
       },
     },
