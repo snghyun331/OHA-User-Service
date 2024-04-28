@@ -35,7 +35,6 @@ export class AuthService {
 
   async handleSocialLogin(socialUser: GoogleUser | KakaoUser | NaverUser, transactionManager: EntityManager) {
     try {
-      let type: string;
       let result: any;
       let isNameExist: boolean;
       let userInfo: object;
@@ -45,7 +44,8 @@ export class AuthService {
 
       if (!user) {
         // 새로 가입할 회원일 경우
-        return socialUser;
+        const result = await this.newUserLogin(socialUser, transactionManager);
+        return result;
       } else {
         // 기존 회원일 경우
         result = await this.login(user, transactionManager);
@@ -54,18 +54,16 @@ export class AuthService {
         } else {
           isNameExist = true;
         }
-        type = 'exist';
         userInfo = {
           providerType: user.providerType,
           email: user.email,
           name: user.name,
           profileUrl: user.profileUrl,
-          isWithdraw: user.isWithdraw,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         };
       }
-      return { type, isNameExist, ...result, userInfo };
+      return { isJoined: user.isJoined, isNameExist, ...result, userInfo };
     } catch (e) {
       this.logger.error(e);
       throw e;
@@ -80,22 +78,20 @@ export class AuthService {
       if (user) {
         throw new ConflictException('해당 유저는 이미 가입되어있습니다');
       }
-      const newUser = await this.createUser(providerType, socialUser, transactionManager);
+      const newUser = await this.createUnJoinedUser(providerType, socialUser, transactionManager);
       const result = await this.login(newUser, transactionManager);
       const { accessToken } = result;
       await this.createDefaultDistrict(accessToken, newUser);
-      const type = 'new';
       const isNameExist = false;
       const userInfo = {
         providerType: newUser.providerType,
         email: newUser.email,
         name: newUser.name,
         profileUrl: newUser.profileUrl,
-        isWithdraw: newUser.isWithdraw,
         createdAt: newUser.createdAt,
         updatedAt: newUser.updatedAt,
       };
-      return { type, isNameExist, ...result, userInfo };
+      return { isJoined: newUser.isJoined, isNameExist, ...result, userInfo };
     } catch (e) {
       this.logger.error(e);
       if (e.response && e.response.data) {
@@ -173,17 +169,6 @@ export class AuthService {
     return result;
   }
 
-  private async createUser(providerType, user, transactionManager) {
-    const { providerId, email } = user;
-    const newUser = new UserEntity();
-    newUser.providerType = providerType;
-    newUser.providerId = providerId;
-    newUser.email = email;
-
-    const result = await transactionManager.save(newUser);
-    return result;
-  }
-
   async getCookieWithAccessToken(userId: number, providerId: string) {
     const result = await this.tokenService.generateCookieWithAccessToken(userId, providerId);
     return result;
@@ -223,9 +208,9 @@ export class AuthService {
       throw new BadRequestException('userId가 생성되지 않았습니다');
     }
     const accessToken = token;
-    const address = '서울특별시 강남구 논현동';
+    const code = '1168010800';
     const headers = { Authorization: `Bearer ${accessToken}` };
-    const body = { address: address };
+    const body = { code: code };
 
     let apiUrl;
     if (process.env.NODE_ENV === 'dev') {
@@ -234,5 +219,21 @@ export class AuthService {
       apiUrl = `http://${process.env.Eureka_HOST}/api/common/location/freqdistrict`;
     }
     return await lastValueFrom(this.httpService.post(apiUrl, body, { headers }));
+  }
+
+  private async createUnJoinedUser(providerType, user, transactionManager) {
+    const { providerId, email } = user;
+    const newUser = new UserEntity();
+    newUser.providerType = providerType;
+    newUser.providerId = providerId;
+    newUser.email = email;
+
+    const result = await transactionManager.save(newUser);
+    return result;
+  }
+
+  async updateJoinStatus(userId, transactionManager: EntityManager) {
+    await transactionManager.update(UserEntity, userId, { isJoined: true });
+    return;
   }
 }

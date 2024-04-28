@@ -6,6 +6,9 @@ export class UserEntity {
   @PrimaryGeneratedColumn()
   userId: number;
 
+  @Column({ type: 'boolean', default: false, nullable: false })
+  isJoined: boolean;
+
   @Column({ type: 'enum', enum: ProviderType, nullable: false })
   providerType: ProviderType;
 
@@ -32,9 +35,6 @@ export class UserEntity {
 
   @Column({ type: 'varchar', nullable: true })
   backgroundUrl: string;
-
-  @Column({ type: 'boolean', default: false, nullable: false })
-  isWithdraw: boolean;
 
   @CreateDateColumn({ nullable: false })
   createdAt: Date;

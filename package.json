@@ -46,6 +46,7 @@
     "nest-winston": "^1.9.4",
     "nestjs-eureka": "^2.0.0",
     "passport": "^0.7.0",
+    "passport-apple": "^2.0.2",
     "passport-custom": "^1.1.1",
     "passport-google-oauth20": "^2.0.0",
     "passport-kakao": "^1.0.1",
