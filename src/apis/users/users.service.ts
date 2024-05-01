@@ -56,7 +56,7 @@ export class UsersService {
         await unlink(`${UPLOAD_PATH}/${userProfileName}`);
       }
 
-      const url = `http://${this.configService.get('Eureka_HOST')}/files/user/${filename}`;
+      const url = `https://ohauser2.serveftp.com/files/user/${filename}`;
 
       const result = await transactionManager.update(UserEntity, userId, { profileUrl: url });
       if (result.affected === 0) {
