@@ -146,9 +146,9 @@ export class AuthController {
   @ApiExclude()
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(AppleAuthGuard)
-  @Get('apple/callback')
-  async appleCallback(@TransactionManager() transactionManager, @Req() req): Promise<{ message: string }> {
-    console.log(req);
+  @Post('apple/callback')
+  async appleCallback(@TransactionManager() transactionManager, @Body() payload): Promise<{ message: string }> {
+    console.log(payload);
     // const loginResult = await this.authService.handleSocialLogin(naverUser, transactionManager);
     // if (!loginResult.type) {
     //   return { message: '약관동의를 완료해주세요', result: loginResult };
