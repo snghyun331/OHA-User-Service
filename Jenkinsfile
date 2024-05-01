@@ -22,7 +22,7 @@ pipeline {
         OAUTH_APPLE_TEAM = credentials('oauth_apple_team')
         OAUTH_APPLE_REDIRECT = credentials('oauth_apple_redirect')
         OAUTH_APPLE_KEY = credentials('oauth_apple_key')
-        OAUTH_APPLE_KEYFILE_PATH = credentials('oauth_apple_keyfile_path')
+        OAUTH_APPLE_KEY_PW = credentials('oauth_apple_keyfile_pw')
         JWT_SECRET_KEY = credentials('jwt_secret_key')
         JWT_REFRESH_SECRET_KEY = credentials('jwt_refresh_secret_key')
         JWT_ACCESS_EXPIRATION_TIME = credentials('jwt_access_expiration_time')
@@ -81,7 +81,7 @@ pipeline {
                             echo "OAUTH_APPLE_TEAM=${OAUTH_APPLE_TEAM}" >> .product.env
                             echo "OAUTH_APPLE_REDIRECT=${OAUTH_APPLE_REDIRECT}" >> .product.env
                             echo "OAUTH_APPLE_KEY=${OAUTH_APPLE_KEY}" >> .product.env
-                            echo "OAUTH_APPLE_KEYFILE_PATH=${OAUTH_APPLE_KEYFILE_PATH}" >> .product.env
+                            echo "OAUTH_APPLE_KEY_PW=${OAUTH_APPLE_KEY_PW}" >> .product.env
                             echo "JWT_SECRET_KEY=${JWT_SECRET_KEY}" >> .product.env
                             echo "JWT_REFRESH_SECRET_KEY=${JWT_REFRESH_SECRET_KEY}" >> .product.env
                             echo "JWT_ACCESS_EXPIRATION_TIME=${JWT_ACCESS_EXPIRATION_TIME}" >> .product.env
