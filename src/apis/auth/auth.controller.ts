@@ -10,6 +10,7 @@ import {
   Delete,
   Body,
   Put,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
@@ -37,7 +38,6 @@ import {
   ApiResponseErrorBadRequest,
   ApiResponseErrorUnauthorized,
   ApiBearerAuthAccessToken,
-  ApiResponseErrorConflict,
   ApiResponseCompleteTermSuccess,
 } from 'src/utils/decorators';
 import { FCMDto } from './dto/fcm.dto';
@@ -65,7 +65,6 @@ export class AuthController {
     const loginResult = await this.authService.handleSocialLogin(googleUser, transactionManager);
     const { isJoined, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
     const result = { isJoined, isNameExist, accessToken, refreshToken, userInfo };
-    console.log(result);
 
     res.header('Authorization', `Bearer ${accessToken}`);
     res.cookie('Refresh-Token', refreshToken, refreshOption);
@@ -138,31 +137,28 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  // @ApiDescription('애플 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
-  // @ApiResponseLoginSuccess()
-  // @UseGuards(AppleAuthGuard)
-  // @Get('apple/login')
-  // async appleLogin(): Promise<void> {}
+  @ApiDescription('애플 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
+  @ApiResponseLoginSuccess()
+  @UseGuards(AppleAuthGuard)
+  @Get('apple/login')
+  async appleLogin(): Promise<void> {}
 
-  // @ApiExclude()
-  // @UseInterceptors(TransactionInterceptor)
-  // @UseGuards(AppleAuthGuard)
-  // @Get('apple/callback')
-  // async appleCallback(
-  //   @TransactionManager() transactionManager,
-  //   // @GetUser() naverUser: NaverUser,
-  //   @Res({ passthrough: true }) res: Response,
-  // ): Promise<{ message: string }> {
-  //   // const loginResult = await this.authService.handleSocialLogin(naverUser, transactionManager);
-  //   // if (!loginResult.type) {
-  //   //   return { message: '약관동의를 완료해주세요', result: loginResult };
-  //   // }
-  //   // const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
-  //   // res.header('Authorization', `Bearer ${accessToken}`);
-  //   // res.cookie('Refresh-Token', refreshToken, refreshOption);
-  //   // const result = { type, isNameExist, accessToken, refreshToken, userInfo };
-  //   return { message: '로그인 성공했습니다' };
-  // }
+  @ApiExclude()
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AppleAuthGuard)
+  @Get('apple/callback')
+  async appleCallback(@TransactionManager() transactionManager, @Req() req): Promise<{ message: string }> {
+    console.log(req);
+    // const loginResult = await this.authService.handleSocialLogin(naverUser, transactionManager);
+    // if (!loginResult.type) {
+    //   return { message: '약관동의를 완료해주세요', result: loginResult };
+    // }
+    // const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    // res.header('Authorization', `Bearer ${accessToken}`);
+    // res.cookie('Refresh-Token', refreshToken, refreshOption);
+    // const result = { type, isNameExist, accessToken, refreshToken, userInfo };
+    return { message: '애플 로그인 성공했습니다' };
+  }
 
   @ApiDescription('약관동의 완료 후 호출할 API - 아직 가입 안한 유저(isJoined: false)에 해당')
   @ApiResponseCompleteTermSuccess()

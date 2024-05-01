@@ -5,7 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { GoogleStrategy, KakaoStrategy, NaverStrategy, JwtStrategy, JwtRefreshStrategy } from 'src/strategies';
+import {
+  GoogleStrategy,
+  KakaoStrategy,
+  NaverStrategy,
+  JwtStrategy,
+  JwtRefreshStrategy,
+  AppleStrategy,
+} from 'src/strategies';
 import { TokenService } from './token.service';
 import { HttpModule } from '@nestjs/axios';
 
@@ -21,6 +28,7 @@ import { HttpModule } from '@nestjs/axios';
     JwtRefreshStrategy,
     KakaoStrategy,
     NaverStrategy,
+    AppleStrategy,
   ],
 })
 export class AuthModule {}
