@@ -17,7 +17,11 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
   }
 
   async function(req, accessToken, refreshToken, idToken, profile, cb) {
-    console.log(profile);
+    console.log('req:', req);
+    console.log('accessToken:', accessToken);
+    console.log('refreshToken:', refreshToken);
+    console.log('idToken:', idToken);
+    console.log('profile:', profile);
     // const { provider, id, name, emails } = profile;
     // return {
     //   provider,
