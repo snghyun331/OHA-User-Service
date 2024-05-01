@@ -11,8 +11,10 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
       teamID: configService.get('OAUTH_APPLE_TEAM'),
       callbackURL: configService.get('OAUTH_APPLE_REDIRECT'),
       keyID: configService.get('OAUTH_APPLE_KEY_ID'),
-      privateKeyString: configService.get('OAUTH_APPLE_KEY_PW'),
-      passReqToCallback: true,
+      // privateKeyString: configService.get('OAUTH_APPLE_KEY_PW'),
+      keyFilePath: './AuthKey_M989425H9R.p8',
+      passReqToCallback: false,
+      scope: ['email', 'name'],
     });
   }
 
