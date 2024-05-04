@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-apple';
+// import { Strategy } from 'passport-apple';
+import { Strategy } from '@arendajaelu/nestjs-passport-apple';
 
 @Injectable()
 export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
@@ -10,7 +11,7 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
       clientID: configService.get('OAUTH_APPLE_ID'),
       teamID: configService.get('OAUTH_APPLE_TEAM'),
       callbackURL: configService.get('OAUTH_APPLE_REDIRECT'),
-      keyID: configService.get('OAUTH_APPLE_KEY_ID'),
+      keyID: configService.get('OAUTH_APPLE_KEY'),
       privateKeyString: `-----BEGIN PRIVATE KEY-----
       MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQglDM9riRHfhJYX8Vp
       L84DXtXLCgdlun7pUdWsQFbl8TugCgYIKoZIzj0DAQehRANCAAToEvYfFm/QUuRP
@@ -28,6 +29,7 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
       console.log('refreshToken:', refreshToken);
       console.log('idToken:', idToken);
       console.log('profile:', profile);
+      cb(null, idToken);
     } catch (e) {
       console.error(e);
     }
