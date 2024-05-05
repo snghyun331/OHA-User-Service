@@ -10,12 +10,11 @@ import {
   Delete,
   Body,
   Put,
-  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
-import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
+import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interfaces';
 import {
   JwtAuthGuard,
   JwtRefreshAuthGuard,
@@ -147,17 +146,25 @@ export class AuthController {
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(AppleAuthGuard)
   @Post('apple/callback')
-  async appleCallback(@TransactionManager() transactionManager, @Body() payload): Promise<{ message: string }> {
-    console.log(payload);
-    // const loginResult = await this.authService.handleSocialLogin(naverUser, transactionManager);
-    // if (!loginResult.type) {
-    //   return { message: '약관동의를 완료해주세요', result: loginResult };
-    // }
-    // const { type, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
-    // res.header('Authorization', `Bearer ${accessToken}`);
-    // res.cookie('Refresh-Token', refreshToken, refreshOption);
-    // const result = { type, isNameExist, accessToken, refreshToken, userInfo };
-    return { message: '애플 로그인 성공했습니다' };
+  async appleCallback(
+    @TransactionManager() transactionManager,
+    @Body() payload,
+    @GetUser() appleUser: AppleUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string; result: any }> {
+    const loginResult = await this.authService.handleSocialLogin(appleUser, transactionManager);
+
+    const { isJoined, isNameExist, accessToken, refreshToken, refreshOption, userInfo } = loginResult;
+    const result = { isJoined, isNameExist, accessToken, refreshToken, userInfo };
+
+    res.header('Authorization', `Bearer ${accessToken}`);
+    res.cookie('Refresh-Token', refreshToken, refreshOption);
+
+    if (isJoined === false) {
+      return { message: '약관동의를 완료해주세요.', result };
+    }
+
+    return { message: '로그인 성공했습니다', result };
   }
 
   @ApiDescription('약관동의 완료 후 호출할 API - 아직 가입 안한 유저(isJoined: false)에 해당')
