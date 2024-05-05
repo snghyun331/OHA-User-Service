@@ -14,7 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { ProviderType } from '../users/types/user.enum';
-import { GoogleUser, KakaoUser, NaverUser } from './interfaces';
+import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interfaces';
 import { TokenService } from './token.service';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
@@ -33,7 +33,10 @@ export class AuthService {
     private readonly httpService: HttpService,
   ) {}
 
-  async handleSocialLogin(socialUser: GoogleUser | KakaoUser | NaverUser, transactionManager: EntityManager) {
+  async handleSocialLogin(
+    socialUser: GoogleUser | KakaoUser | NaverUser | AppleUser,
+    transactionManager: EntityManager,
+  ) {
     try {
       let result: any;
       let isNameExist: boolean;
@@ -189,7 +192,7 @@ export class AuthService {
     }
   }
 
-  private async getProviderType(user: GoogleUser | KakaoUser | NaverUser) {
+  private async getProviderType(user: GoogleUser | KakaoUser | NaverUser | AppleUser) {
     const { provider } = user;
     if (provider == 'google') {
       return ProviderType.google;
