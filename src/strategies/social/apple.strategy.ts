@@ -3,23 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 // import { Strategy } from 'passport-apple';
 import { Profile, Strategy } from '@arendajaelu/nestjs-passport-apple';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
-  constructor(
-    private configService: ConfigService,
-    private jwtService: JwtService,
-  ) {
+  constructor(private configService: ConfigService) {
     super({
       clientID: configService.get('OAUTH_APPLE_ID'),
       teamID: configService.get('OAUTH_APPLE_TEAM'),
       callbackURL: configService.get('OAUTH_APPLE_REDIRECT'),
       keyID: configService.get('OAUTH_APPLE_KEY'),
-      key: configService
-        .get('OAUTH_APPLE_KEY_PW')
-        .split(String.raw`\n`)
-        .join('\n'),
+      key: `${configService.get('OAUTH_APPLE_KEY_PW')}`,
+      // .split(String.raw`\n`)
+      // .join('\n'),
       passReqToCallback: false,
       scope: ['email', 'name'],
     });
