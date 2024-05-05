@@ -12,7 +12,7 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
       teamID: configService.get('OAUTH_APPLE_TEAM'),
       callbackURL: configService.get('OAUTH_APPLE_REDIRECT'),
       keyID: configService.get('OAUTH_APPLE_KEY'),
-      key: configService.get('OAUTH_APPLE_KEY_PW'),
+      key: `${configService.get('OAUTH_APPLE_KEY_PW')}`,
       // .split(String.raw`\n`)
       // .join('\n'),
       passReqToCallback: false,
