@@ -11,7 +11,7 @@ export class ConsumerService implements OnApplicationShutdown {
   private readonly consumers: Consumer[] = [];
 
   async consume(topics: ConsumerSubscribeTopics, config: ConsumerRunConfig) {
-    const consumer = this.kafka.consumer({ groupId: 'nestjs-kafka'});
+    const consumer = this.kafka.consumer({ groupId: 'nestjs-kafka' });
     await consumer.connect();
     await consumer.subscribe(topics);
     await consumer.run(config);
