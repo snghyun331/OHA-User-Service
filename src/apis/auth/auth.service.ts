@@ -21,6 +21,7 @@ import { lastValueFrom } from 'rxjs';
 import { UserDto } from './dto/user.dto';
 import { FCMDto } from './dto/fcm.dto';
 import * as moment from 'moment-timezone';
+import { createNickName, createRandomName } from 'src/utils/utility';
 
 @Injectable()
 export class AuthService {
@@ -226,10 +227,27 @@ export class AuthService {
 
   private async createUnJoinedUser(providerType, user, transactionManager) {
     const { providerId, email } = user;
+    let { name } = user;
+    let isDuplicate: boolean = true;
+    let nickName: string;
+
+    if (!name) {
+      name = createRandomName();
+    }
+
+    while (isDuplicate) {
+      nickName = createNickName(name);
+      const existingName = await this.usersRepository.findOne({ where: { name } });
+      if (!existingName) {
+        isDuplicate = false;
+      }
+    }
+
     const newUser = new UserEntity();
     newUser.providerType = providerType;
     newUser.providerId = providerId;
     newUser.email = email;
+    newUser.name = nickName;
 
     const result = await transactionManager.save(newUser);
     return result;

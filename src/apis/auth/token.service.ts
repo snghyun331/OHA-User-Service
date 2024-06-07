@@ -17,7 +17,7 @@ export class TokenService {
     const payload: JwtPayload = { userId, providerId };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_SECRET_KEY'),
-      expiresIn: +this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
     });
     const result = {
       accessToken: token,
@@ -30,7 +30,7 @@ export class TokenService {
     const payload: JwtPayload = { userId, providerId };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_SECRET_KEY'),
-      expiresIn: +this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     });
 
     const result = {
