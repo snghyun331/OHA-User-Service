@@ -22,6 +22,8 @@ import { UserDto } from './dto/user.dto';
 import { FCMDto } from './dto/fcm.dto';
 import * as moment from 'moment-timezone';
 import { createNickName, createRandomName } from 'src/utils/utility';
+import { ProducerRecord } from 'kafkajs';
+import { ProducerService } from 'src/kafka/kafka.producer.service';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +34,7 @@ export class AuthService {
     private usersRepository: Repository<UserEntity>,
     private tokenService: TokenService,
     private readonly httpService: HttpService,
+    private readonly producerService: ProducerService,
   ) {}
 
   async handleSocialLogin(
@@ -129,6 +132,7 @@ export class AuthService {
       }
       const result = await this.tokenService.removeCookiesForLogout();
       await transactionManager.delete(UserEntity, userId);
+      await this.produceWithdrawEvent(userId);
       return result;
     } catch (e) {
       this.logger.error(e);
@@ -256,5 +260,14 @@ export class AuthService {
   async updateJoinStatus(userId, transactionManager: EntityManager) {
     await transactionManager.update(UserEntity, userId, { isJoined: true });
     return;
+  }
+
+  async produceWithdrawEvent(userId: number) {
+    const kafkaEnv = process.env.KAFKA_ENV;
+    const record: ProducerRecord = {
+      topic: `user-withdraw-${kafkaEnv}`,
+      messages: [{ value: JSON.stringify({ userId }) }],
+    };
+    await this.producerService.produce(record);
   }
 }

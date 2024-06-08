@@ -11,8 +11,8 @@ import { TokenService } from '../auth/token.service';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity]), DiskStorageModule, JwtModule.register({}),],
+  imports: [TypeOrmModule.forFeature([UserEntity]), DiskStorageModule, JwtModule.register({})],
   controllers: [UsersController],
-  providers: [UsersService, JwtStrategy, Logger, ConsumerService, ProducerService, TokenService,],
+  providers: [UsersService, JwtStrategy, Logger, ConsumerService, ProducerService, TokenService],
 })
 export class UsersModule {}

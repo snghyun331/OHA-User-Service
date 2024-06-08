@@ -12,9 +12,9 @@ export class ConsumerService implements OnApplicationShutdown {
 
   async consume(topics: ConsumerSubscribeTopics, config: ConsumerRunConfig) {
     const consumer = this.kafka.consumer({ groupId: 'nestjs-kafka' });
-    await consumer.connect();
-    await consumer.subscribe(topics);
-    await consumer.run(config);
+    await consumer.connect(); // 접속
+    await consumer.subscribe(topics); // 구독
+    await consumer.run(config); // 메세지 수신 뱅뱅이
     this.consumers.push(consumer);
   }
 

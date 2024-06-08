@@ -11,15 +11,12 @@ import {
 import { EntityManager, In, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { unlink } from 'fs/promises';
 import { UPLOAD_PATH } from 'src/utils/path';
 import { ConsumerService } from 'src/kafka/kafka.consumer.service';
 import { ProducerService } from 'src/kafka/kafka.producer.service';
-import { send } from 'process';
-import { TokenService } from '../auth/token.service';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -28,10 +25,8 @@ export class UsersService implements OnModuleInit {
     private readonly logger: LoggerService,
     @InjectRepository(UserEntity)
     private usersRepository: Repository<UserEntity>,
-    private configService: ConfigService,
     private readonly consumerService: ConsumerService,
     private readonly producerService: ProducerService,
-    private tokenService: TokenService,
   ) {}
 
   async updateNickname(userId: number, dto: UpdateNameDto, transactionManager: EntityManager) {
@@ -210,7 +205,7 @@ export class UsersService implements OnModuleInit {
           let sendTopic = '';
           try {
             sendTopic = await this.getSendTopic(topic);
-
+            // 날씨 등록 알림
             if (topic === events[2]) {
               const allUsers = await this.getAllActiveUsers();
               const userList = allUsers.map((item) => ({
@@ -227,7 +222,7 @@ export class UsersService implements OnModuleInit {
               data['fcm_token'] = user.encryptedFCM;
 
               if (topic === events[3]) {
-                // 날씨 등록 알림
+                // 댓글 등록 알림
                 const commentUserId = data.comment_user_id;
                 const commentUser = await this.getUserById(commentUserId);
 
