@@ -15,6 +15,8 @@ import {
 } from 'src/strategies';
 import { TokenService } from './token.service';
 import { HttpModule } from '@nestjs/axios';
+import { ProducerService } from 'src/kafka/kafka.producer.service';
+import { ConsumerService } from 'src/kafka/kafka.consumer.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity]), PassportModule, JwtModule.register({}), HttpModule.register({})],
@@ -22,6 +24,8 @@ import { HttpModule } from '@nestjs/axios';
   providers: [
     AuthService,
     TokenService,
+    ConsumerService,
+    ProducerService,
     Logger,
     GoogleStrategy,
     JwtStrategy,

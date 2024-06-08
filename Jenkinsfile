@@ -30,6 +30,11 @@ pipeline {
         ENCRYPT_SECRET_KEY = credentials('encrypt_secret_key')
         Eureka_HOST = credentials('eureka_host')
         Eureka_PORT = credentials('eureka_port')
+        KAFKAJS_NO_PARTITIONER_WARNING = credentials('kafkajs_no_partitioner_warning')
+        KAFKA_ENV = credentials('kafka_env')
+        KAFKA_HOST = credentials('kafka_host')
+        KAFKA_PORT = credentials('kafka_port')
+        KAFKA_AUTO_OFFSET_RESET = credentials('kafka_auto_offset_reset')
     }
 
     stages {
@@ -89,6 +94,11 @@ pipeline {
                             echo "ENCRYPT_SECRET_KEY=${ENCRYPT_SECRET_KEY}" >> .product.env
                             echo "Eureka_HOST=${Eureka_HOST}" >> .product.env
                             echo "Eureka_PORT=${Eureka_PORT}" >> .product.env
+                            echo "KAFKAJS_NO_PARTITIONER_WARNING=${KAFKAJS_NO_PARTITIONER_WARNING}" >> .product.env
+                            echo "KAFKA_ENV=${KAFKA_ENV}" >> .product.env
+                            echo "KAFKA_HOST=${KAFKA_HOST}" >> .product.env
+                            echo "KAFKA_PORT=${KAFKA_PORT}" >> .product.env
+                            echo "KAFKA_AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET}" >> .product.env
                         '''
                     }
                 }

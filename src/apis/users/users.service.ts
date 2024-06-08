@@ -6,24 +6,27 @@ import {
   Logger,
   LoggerService,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { EntityManager, In, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { unlink } from 'fs/promises';
 import { UPLOAD_PATH } from 'src/utils/path';
+import { ConsumerService } from 'src/kafka/kafka.consumer.service';
+import { ProducerService } from 'src/kafka/kafka.producer.service';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
   constructor(
     @Inject(Logger)
     private readonly logger: LoggerService,
     @InjectRepository(UserEntity)
     private usersRepository: Repository<UserEntity>,
-    private configService: ConfigService,
+    private readonly consumerService: ConsumerService,
+    private readonly producerService: ProducerService,
   ) {}
 
   async updateNickname(userId: number, dto: UpdateNameDto, transactionManager: EntityManager) {
@@ -152,5 +155,107 @@ export class UsersService {
     } else {
       return;
     }
+  }
+
+  async getUserById(userId: number) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        userId: userId,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+    return user;
+  }
+
+  async getAllActiveUsers() {
+    const allUsers = await this.usersRepository.find();
+    return allUsers;
+  }
+
+  async getSendTopic(topic: string) {
+    const words = topic.split('-');
+    words.splice(words.length - 1, 0, 'user');
+    return words.join('-');
+  }
+
+  async onModuleInit() {
+    const kafkaEnv = process.env.KAFKA_ENV;
+    const autoOffsetReset = process.env.KAFKA_AUTO_OFFSET_RESET;
+
+    const events = [
+      `post-like-${kafkaEnv}`,
+      `diary-like-${kafkaEnv}`,
+      `weather-reg-${kafkaEnv}`,
+      `post-comment-${kafkaEnv}`,
+      `post-report-${kafkaEnv}`,
+      `diary-report-${kafkaEnv}`,
+    ];
+
+    await this.consumerService.consume(
+      {
+        topics: [...events],
+        fromBeginning: autoOffsetReset === 'earliest',
+      },
+      {
+        eachMessage: async ({ topic, partition, message }) => {
+          const data = JSON.parse(message.value.toString());
+
+          let sendTopic = '';
+          try {
+            sendTopic = await this.getSendTopic(topic);
+            // 날씨 등록 알림
+            if (topic === events[2]) {
+              const allUsers = await this.getAllActiveUsers();
+              const userList = allUsers.map((item) => ({
+                user_id: item.userId,
+                user_name: item.name,
+                profile_url: item.profileUrl,
+                fcm_token: item.encryptedFCM,
+              }));
+
+              data['user_list'] = userList;
+            } else {
+              const userId = data.user_id;
+              const user = await this.getUserById(userId); // 알림 받는 사용자
+              data['fcm_token'] = user.encryptedFCM;
+
+              if (topic === events[3]) {
+                // 댓글 등록 알림
+                const commentUserId = data.comment_user_id;
+                const commentUser = await this.getUserById(commentUserId);
+
+                data['comment_user_name'] = commentUser.name;
+                data['profile_url'] = commentUser.profileUrl;
+              } else if (topic === events[0] && topic === events[1]) {
+                // 게시물, 다이어리 좋아요 알림
+                const likeUserId = data.like_user_id;
+                const likeUser = await this.getUserById(likeUserId);
+
+                data['like_user_name'] = likeUser.name;
+                data['profile_url'] = likeUser.profileUrl;
+              } else {
+                data['user_name'] = user.name;
+                data['profile_url'] = user.profileUrl;
+              }
+            }
+
+            if (sendTopic) {
+              this.producerService.produce({
+                topic: sendTopic,
+                messages: [
+                  {
+                    value: JSON.stringify(data),
+                  },
+                ],
+              });
+            }
+          } catch (e) {
+            this.logger.error(e);
+          }
+        },
+      },
+    );
   }
 }
