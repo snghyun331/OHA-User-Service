@@ -9,14 +9,14 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { EntityManager, In, Repository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from '../../entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { unlink } from 'fs/promises';
-import { UPLOAD_PATH } from 'src/utils/path';
-import { ConsumerService } from 'src/kafka/kafka.consumer.service';
-import { ProducerService } from 'src/kafka/kafka.producer.service';
+import { UPLOAD_PATH } from '../../utils/path';
+import { ConsumerService } from '../kafka/kafka.consumer.service';
+import { ProducerService } from '../kafka/kafka.producer.service';
 
 @Injectable()
 export class UsersService implements OnModuleInit {

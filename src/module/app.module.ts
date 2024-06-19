@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { NestConfigModule } from './configs/config.module';
-import { DatabaseModule } from './configs/databse.module';
-import { UsersModule } from './apis/users/users.module';
-import { AuthModule } from './apis/auth/auth.module';
+import { NestConfigModule } from '../config/config.module';
+import { DatabaseModule } from '../config/databse.module';
+import { UsersModule } from './user/users.module';
+import { AuthModule } from './auth/auth.module';
 import { KafkaModule } from './kafka/kafka.module';
 
 @Module({

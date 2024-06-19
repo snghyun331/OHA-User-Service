@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
-import { TransactionInterceptor } from 'src/interceptors/transaction.interceptor';
-import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interfaces';
+import { TransactionInterceptor } from '../../interceptor/transaction.interceptor';
+import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interface';
 import {
   JwtAuthGuard,
   JwtRefreshAuthGuard,
@@ -22,7 +22,7 @@ import {
   KakaoAuthGuard,
   NaverAuthGuard,
   AppleAuthGuard,
-} from 'src/guards';
+} from '../../auth/guard';
 import {
   GetUser,
   GetUserId,
@@ -38,7 +38,7 @@ import {
   ApiResponseErrorUnauthorized,
   ApiBearerAuthAccessToken,
   ApiResponseCompleteTermSuccess,
-} from 'src/utils/decorators';
+} from '../../utils/decorators';
 import { FCMDto } from './dto/fcm.dto';
 
 @ApiTagAuth()

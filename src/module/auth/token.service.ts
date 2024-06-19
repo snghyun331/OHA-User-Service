@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from './interfaces';
+import { JwtPayload } from './interface';
 import { SALT_ROUND } from 'src/utils/constant';
 import * as bcrypt from 'bcryptjs';
 import * as CryptoJS from 'crypto-js';

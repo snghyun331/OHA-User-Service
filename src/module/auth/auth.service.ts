@@ -11,10 +11,10 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../users/entities/user.entity';
+import { UserEntity } from '../../entity/user/user.entity';
 import { EntityManager, Repository } from 'typeorm';
-import { ProviderType } from '../users/types/user.enum';
-import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interfaces';
+import { ProviderType } from '../user/enum/enum';
+import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interface';
 import { TokenService } from './token.service';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
@@ -23,7 +23,7 @@ import { FCMDto } from './dto/fcm.dto';
 import * as moment from 'moment-timezone';
 import { createNickName, createRandomName } from 'src/utils/utility';
 import { ProducerRecord } from 'kafkajs';
-import { ProducerService } from 'src/kafka/kafka.producer.service';
+import { ProducerService } from 'src/module/kafka/kafka.producer.service';
 
 @Injectable()
 export class AuthService {

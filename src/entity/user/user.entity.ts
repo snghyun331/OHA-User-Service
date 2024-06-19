@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { ProviderType } from '../types/user.enum';
+import { ProviderType } from '../../module/user/enum/enum';
 
 @Entity('User')
 export class UserEntity {

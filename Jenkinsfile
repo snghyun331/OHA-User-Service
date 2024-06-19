@@ -48,7 +48,7 @@ pipeline {
         stage('Deleting latest containers and images') {
             steps {
                 echo 'Deleting .env file......'
-                sh 'rm -f ./src/configs/env/.product.env || true'
+                sh 'rm -f ./src/config/env/.product.env || true'
                 script {
                     echo 'Deleting latest containers for user.............'
                     sh 'docker kill user || true'  // 컨테이너가 없을 경우 에러 무시
@@ -63,7 +63,7 @@ pipeline {
             steps {
                 script {
                     echo "inserting env variables ............"
-                    dir('./src/configs/env') {
+                    dir('./src/config/env') {
                         sh '''
                             echo "HOST=${HOST}" > .product.env
                             echo "PORT1=${PORT1}" >> .product.env

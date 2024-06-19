@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { UserEntity } from '../../src/users/entities/user.entity';
-import { UsersService } from '../../src/users/users.service';
+import { UserEntity } from '../../src/entity/user/user.entity';
+import { UsersService } from '../../src/module/user/users.service';
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 
 describe('UsersService (Unit)', () => {
