@@ -24,6 +24,7 @@ import * as moment from 'moment-timezone';
 import { createNickName, createRandomName } from 'src/utils/utility';
 import { ProducerRecord } from 'kafkajs';
 import { ProducerService } from 'src/module/kafka/kafka.producer.service';
+import { UserGradeEnum } from 'src/common/enum/enum';
 
 @Injectable()
 export class AuthService {
@@ -65,6 +66,7 @@ export class AuthService {
           providerType: user.providerType,
           email: user.email,
           name: user.name,
+          userGrade: user.userGrade,
           profileUrl: user.profileUrl,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
@@ -161,13 +163,14 @@ export class AuthService {
   private async login(socialUser, transactionManager) {
     const userId = socialUser.userId;
     const providerId = socialUser.providerId;
+    const userGrade = socialUser.userGrade;
     const user = this.usersRepository.findOne({ where: { userId } });
     if (!user) {
       throw new ForbiddenException('접근 권한이 없습니다.');
     }
     const [accessTokenResult, refreshTokenResult] = await Promise.all([
-      this.tokenService.generateCookieWithAccessToken(userId, providerId),
-      this.tokenService.generateCookieWithRefreshToken(userId, providerId),
+      this.tokenService.generateCookieWithAccessToken(userId, providerId, userGrade),
+      this.tokenService.generateCookieWithRefreshToken(userId, providerId, userGrade),
     ]);
     const { accessToken, ...accessOption } = accessTokenResult;
     const { refreshToken, ...refreshOption } = refreshTokenResult;
@@ -177,8 +180,8 @@ export class AuthService {
     return result;
   }
 
-  async getCookieWithAccessToken(userId: number, providerId: string) {
-    const result = await this.tokenService.generateCookieWithAccessToken(userId, providerId);
+  async getCookieWithAccessToken(userId: number, providerId: string, userGrade: UserGradeEnum) {
+    const result = await this.tokenService.generateCookieWithAccessToken(userId, providerId, userGrade);
     return result;
   }
 
