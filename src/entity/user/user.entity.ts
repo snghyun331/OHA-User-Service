@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { ProviderType } from '../types/user.enum';
+import { ProviderType } from '../../module/user/enum/enum';
+import { UserGradeEnum } from 'src/common/enum/enum';
 
 @Entity('User')
 export class UserEntity {
@@ -35,6 +36,9 @@ export class UserEntity {
 
   @Column({ type: 'varchar', nullable: true })
   backgroundUrl: string;
+
+  @Column({ type: 'enum', enum: UserGradeEnum, default: UserGradeEnum.USER, nullable: false })
+  userGrade: UserGradeEnum;
 
   @CreateDateColumn({ nullable: false })
   createdAt: Date;

@@ -1,8 +1,8 @@
 import { InternalServerErrorException, Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { FILES, FILE_SIZE } from 'src/utils/constant';
-import { UPLOAD_PATH } from 'src/utils/path';
+import { FILES, FILE_SIZE } from '../utils/constant';
+import { UPLOAD_PATH } from '../utils/path';
 
 @Module({
   imports: [

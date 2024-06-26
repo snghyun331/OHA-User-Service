@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from './interfaces';
+import { JwtPayload } from './interface';
 import { SALT_ROUND } from 'src/utils/constant';
 import * as bcrypt from 'bcryptjs';
 import * as CryptoJS from 'crypto-js';
+import { UserGradeEnum } from 'src/common/enum/enum';
 
 @Injectable()
 export class TokenService {
@@ -13,8 +14,8 @@ export class TokenService {
     private configService: ConfigService,
   ) {}
 
-  async generateCookieWithAccessToken(userId: number, providerId: string) {
-    const payload: JwtPayload = { userId, providerId };
+  async generateCookieWithAccessToken(userId: number, providerId: string, userGrade: UserGradeEnum) {
+    const payload: JwtPayload = { userId, providerId, userGrade };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_SECRET_KEY'),
       expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
@@ -26,8 +27,8 @@ export class TokenService {
     return result;
   }
 
-  async generateCookieWithRefreshToken(userId: number, providerId: string) {
-    const payload: JwtPayload = { userId, providerId };
+  async generateCookieWithRefreshToken(userId: number, providerId: string, userGrade: UserGradeEnum) {
+    const payload: JwtPayload = { userId, providerId, userGrade };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_SECRET_KEY'),
       expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
