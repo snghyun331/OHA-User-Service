@@ -72,7 +72,7 @@ export class UsersService implements OnModuleInit {
     }
   }
 
-  async getUser(userId: number) {
+  async getUserById(userId: number) {
     try {
       const user = await this.usersRepository.findOne({
         where: { userId },
@@ -157,23 +157,6 @@ export class UsersService implements OnModuleInit {
     }
   }
 
-  async getUserById(userId: number) {
-    const user = await this.usersRepository.findOne({
-      where: {
-        userId: userId,
-      },
-    });
-    if (!user) {
-      throw new NotFoundException('존재하지 않는 사용자입니다.');
-    }
-    return user;
-  }
-
-  async getAllActiveUsers() {
-    const allUsers = await this.usersRepository.find();
-    return allUsers;
-  }
-
   async getSendTopic(topic: string) {
     const words = topic.split('-');
     words.splice(words.length - 1, 0, 'user');
@@ -182,9 +165,9 @@ export class UsersService implements OnModuleInit {
 
   async onModuleInit() {
     const kafkaEnv = process.env.KAFKA_ENV;
-    const autoOffsetReset = process.env.KAFKA_AUTO_OFFSET_RESET;
+    // const autoOffsetReset = process.env.KAFKA_AUTO_OFFSET_RESET;
 
-    const events = [
+    const topics = [
       `post-like-${kafkaEnv}`,
       `diary-like-${kafkaEnv}`,
       `weather-reg-${kafkaEnv}`,
@@ -195,64 +178,104 @@ export class UsersService implements OnModuleInit {
 
     await this.consumerService.consume(
       {
-        topics: [...events],
-        fromBeginning: autoOffsetReset === 'earliest',
+        topics: [...topics],
+        // fromBeginning: autoOffsetReset === 'earliest',
       },
       {
         eachMessage: async ({ topic, partition, message }) => {
-          const data = JSON.parse(message.value.toString());
-
+          const event = JSON.parse(message.value.toString());
+          console.log(event);
           let sendTopic = '';
           try {
             sendTopic = await this.getSendTopic(topic);
+            // 포스팅 좋아요 알림
+            if (topic === topics[0]) {
+              const postWriterId = event.user_id;
+              const postWriter = await this.getUserById(postWriterId);
+              const likeUserId = event.like_user_id;
+              const likeUser = await this.getUserById(likeUserId);
+
+              event.diary_writer_name = postWriter.name;
+              event.diary_writer_profile_url = postWriter.profileUrl;
+              event.like_user_name = likeUser.name;
+              event.like_user_profile_url = likeUser.profileUrl;
+              event.post_writer_fcm = postWriter.encryptedFCM;
+            }
+            // 다이어리 좋아요 알림
+            if (topic === topics[1]) {
+              const diaryWriterId = event.user_id;
+              const diaryWriter = await this.getUserById(diaryWriterId);
+              const likeUserId = event.like_user_id;
+              const likeUser = await this.getUserById(likeUserId);
+
+              event.diary_writer_name = diaryWriter.name;
+              event.diary_writer_profile_url = diaryWriter.profileUrl;
+              event.like_user_name = likeUser.name;
+              event.like_user_profile_url = likeUser.profileUrl;
+              event.diary_writer_fcm = diaryWriter.encryptedFCM;
+            }
             // 날씨 등록 알림
-            if (topic === events[2]) {
-              const allUsers = await this.getAllActiveUsers();
+            if (topic === topics[2]) {
+              const allUsers = await this.getUsers();
               const userList = allUsers.map((item) => ({
                 user_id: item.userId,
                 user_name: item.name,
                 profile_url: item.profileUrl,
                 fcm_token: item.encryptedFCM,
               }));
-
-              data['user_list'] = userList;
-            } else {
-              const userId = data.user_id;
-              const user = await this.getUserById(userId); // 알림 받는 사용자
-              data['fcm_token'] = user.encryptedFCM;
-
-              if (topic === events[3]) {
-                // 댓글 등록 알림
-                const commentUserId = data.comment_user_id;
-                const commentUser = await this.getUserById(commentUserId);
-
-                data['comment_user_name'] = commentUser.name;
-                data['profile_url'] = commentUser.profileUrl;
-              } else if (topic === events[0] && topic === events[1]) {
-                // 게시물, 다이어리 좋아요 알림
-                const likeUserId = data.like_user_id;
-                const likeUser = await this.getUserById(likeUserId);
-
-                data['like_user_name'] = likeUser.name;
-                data['profile_url'] = likeUser.profileUrl;
-              } else {
-                data['user_name'] = user.name;
-                data['profile_url'] = user.profileUrl;
-              }
+              event.user_list = userList;
             }
+            // 포스팅 댓글 등록 알림
+            if (topic === topics[3]) {
+              const userId = event.user_id;
+              const commentUserId = event.comment_user_id;
+              const user = await this.getUserById(userId);
+              const commentUser = await this.getUserById(commentUserId);
 
+              event.comment_user_name = commentUser.name;
+              event.profile_url = commentUser.profileUrl;
+              event.fcm_token = user.encryptedFCM;
+            }
+            // 포스팅 신고 알람
+            if (topic === topics[4]) {
+              const { reporting_user_id: reportingUserId, reported_user_id: reportedUserId } = event;
+              const reportingUser = await this.getUserById(reportingUserId);
+              const reportedUser = await this.getUserById(reportedUserId);
+
+              event.reporting_user_name = reportingUser.name;
+              event.reporting_user_profile_url = reportingUser.profileUrl;
+              event.reported_user_name = reportedUser.name;
+              event.reported_user_profile_url = reportedUser.profileUrl;
+              event.reporting_user_fcm_token = reportingUser.encryptedFCM;
+              event.reported_user_fcm_token = reportedUser.encryptedFCM;
+            }
+            // 다이어리 신고 알람
+            if (topic === topics[5]) {
+              const { reporting_user_id: reportingUserId, reported_user_id: reportedUserId } = event;
+              const reportingUser = await this.getUserById(reportingUserId);
+              const reportedUser = await this.getUserById(reportedUserId);
+
+              event.reporting_user_name = reportingUser.name;
+              event.reporting_user_profile_url = reportingUser.profileUrl;
+              event.reported_user_name = reportedUser.name;
+              event.reported_user_profile_url = reportedUser.profileUrl;
+              event.reporting_user_fcm_token = reportingUser.encryptedFCM;
+              event.reported_user_fcm_token = reportedUser.encryptedFCM;
+            }
+            console.log(event);
             if (sendTopic) {
               this.producerService.produce({
                 topic: sendTopic,
                 messages: [
                   {
-                    value: JSON.stringify(data),
+                    value: JSON.stringify(event),
                   },
                 ],
               });
             }
           } catch (e) {
             this.logger.error(e);
+            throw e;
           }
         },
       },

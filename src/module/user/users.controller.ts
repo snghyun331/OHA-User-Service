@@ -84,7 +84,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('myinfo')
   async getMyInfo(@GetUserId() userId: number): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getUser(userId);
+    const result = await this.userService.getUserById(userId);
     return { message: '내 정보를 성공적으로 가져왔습니다', result };
   }
 
@@ -117,7 +117,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('specificuser/:userId')
   async getSpecificUser(@Param('userId') userId: number): Promise<{ message: string; result: any }> {
-    const result = await this.userService.getUser(userId);
+    const result = await this.userService.getUserById(userId);
     return { message: '요청한 유저의 정보를 성공적으로 가져왔습니다', result };
   }
 }
