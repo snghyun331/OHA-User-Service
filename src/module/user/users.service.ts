@@ -11,7 +11,6 @@ import {
 import { EntityManager, In, Repository } from 'typeorm';
 import { UserEntity } from '../../entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateNameDto } from './dto/update-name.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { unlink } from 'fs/promises';
 import { UPLOAD_PATH } from '../../utils/path';
@@ -29,23 +28,56 @@ export class UsersService implements OnModuleInit {
     private readonly producerService: ProducerService,
   ) {}
 
-  async updateNickname(userId: number, dto: UpdateNameDto, transactionManager: EntityManager) {
-    try {
-      const { name } = dto;
-      await this.checkNicknameExists(name, userId);
-      await transactionManager.update(UserEntity, userId, { name });
-      return;
-    } catch (e) {
-      this.logger.error(e);
-      throw e;
-    }
-  }
+  // async updateNickname(userId: number, name: string, transactionManager: EntityManager) {
+  //   try {
+  //     const { name } = dto;
+  //     await this.checkNicknameExists(name, userId);
+  //     await transactionManager.update(UserEntity, userId, { name });
+  //     return;
+  //   } catch (e) {
+  //     this.logger.error(e);
+  //     throw e;
+  //   }
+  // }
 
-  async uploadProfile(userId: number, filename: string, transactionManager: EntityManager) {
-    try {
-      if (!filename) {
-        throw new BadRequestException('요청한 프로필이 없습니다');
-      }
+  // async uploadProfile(userId: number, filename: string, transactionManager: EntityManager) {
+  //   try {
+  //     if (!filename) {
+  //       throw new BadRequestException('요청한 프로필이 없습니다');
+  //     }
+  //     const user = await this.usersRepository.findOne({ where: { userId } });
+
+  //     if (!user) {
+  //       throw new NotFoundException('존재하지 않는 사용자입니다');
+  //     }
+  //     const userProfile = user.profileUrl;
+
+  //     // 기존 프로필 사진이 존재할 경우
+  //     if (userProfile !== null) {
+  //       const userProfileName = userProfile.split('/').pop();
+  //       await unlink(`${UPLOAD_PATH}/${userProfileName}`);
+  //     }
+
+  //     const url = `https://ohauser2.serveftp.com/files/user/${filename}`;
+
+  //     const result = await transactionManager.update(UserEntity, userId, { profileUrl: url });
+  //     if (result.affected === 0) {
+  //       throw new BadRequestException('Profile update failed: Invalid input data');
+  //     }
+  //     return { imageUrl: url };
+  //   } catch (e) {
+  //     this.logger.error(e);
+  //     throw e;
+  //   }
+  // }
+
+  async updateMyInfo(userId: number, dto, transactionManager: EntityManager) {
+    if (dto.name) {
+      await this.checkNicknameExists(dto.name, userId);
+      await transactionManager.update(UserEntity, userId, { name: dto.name });
+    }
+    if (dto.profileImage) {
+      const fileName = dto.profileImage.filename
       const user = await this.usersRepository.findOne({ where: { userId } });
 
       if (!user) {
@@ -59,16 +91,13 @@ export class UsersService implements OnModuleInit {
         await unlink(`${UPLOAD_PATH}/${userProfileName}`);
       }
 
-      const url = `https://ohauser2.serveftp.com/files/user/${filename}`;
+      const url = `https://ohauser2.serveftp.com/files/user/${fileName}`;
 
       const result = await transactionManager.update(UserEntity, userId, { profileUrl: url });
       if (result.affected === 0) {
         throw new BadRequestException('Profile update failed: Invalid input data');
       }
-      return { imageUrl: url };
-    } catch (e) {
-      this.logger.error(e);
-      throw e;
+      return { profileImage: url };
     }
   }
 
@@ -184,7 +213,6 @@ export class UsersService implements OnModuleInit {
       {
         eachMessage: async ({ topic, partition, message }) => {
           const event = JSON.parse(message.value.toString());
-          console.log(event);
           let sendTopic = '';
           try {
             sendTopic = await this.getSendTopic(topic);
@@ -262,7 +290,7 @@ export class UsersService implements OnModuleInit {
               event.reporting_user_fcm_token = reportingUser.encryptedFCM;
               event.reported_user_fcm_token = reportedUser.encryptedFCM;
             }
-            console.log(event);
+            
             if (sendTopic) {
               this.producerService.produce({
                 topic: sendTopic,

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { UpdateNameDto } from './dto/update-name.dto';
+import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { UsersService } from './users.service';
 import { TransactionInterceptor } from '../../interceptor/transaction.interceptor';
@@ -20,47 +20,34 @@ import {
   ApiResponseProfileUpload,
   ApiParamDescription,
 } from 'src/utils/decorators';
+import { ApiConsumes } from '@nestjs/swagger';
 
 @ApiTagUser()
 @Controller('api/user')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
-  @ApiDescription('닉네임 업데이트')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseSuccess()
-  @ApiResponseErrorBadRequest('엑세스 토큰 없음')
-  @ApiResponseErrorConflict('이미 닉네임이 존재')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(TransactionInterceptor)
-  @Put('name')
-  async updateName(
-    @GetUserId() userId: number,
-    @TransactionManager() transactionManager,
-    @Body() dto: UpdateNameDto,
-  ): Promise<{ message: string }> {
-    await this.userService.updateNickname(userId, dto, transactionManager);
-    return { message: '닉네임이 성공적으로 업데이트 되었습니다.' };
-  }
 
-  @ApiDescription('프로필 사진 업데이트')
+  @ApiDescription('닉네임 및 프로필 업데이트')
+  @ApiConsumes('multipart/form-data')
   @ApiBearerAuthAccessToken()
-  @ApiConsumesMultiForm()
-  @ApiBodyImageForm('profileImage')
-  @ApiResponseProfileUpload()
-  @ApiResponseErrorBadRequest('사용자는 존재하나 업데이트 영향을 받은 필드가 없음(업데이트 X)')
-  @ApiResponseErrorNotFound('존재하지 않는 사용자')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor, FileInterceptor('profileImage'))
-  @Put('image/profile')
-  async updateProfile(
+  @Put('myinfo')
+  async updateMyInfo(
     @GetUserId() userId: number,
     @TransactionManager() transactionManager,
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<{ message: string; result: any }> {
-    const result = await this.userService.uploadProfile(userId, file.filename, transactionManager);
-    return { message: '성공적으로 프로필이 업데이트 되었습니다', result };
+    @UploadedFile() profileImage: Express.Multer.File,
+    @Body() dto: UpdateMyInfoDto,
+  ): Promise<{ message: string, result?: any}> {
+    const result = await this.userService.updateMyInfo(userId, {...dto, profileImage}, transactionManager);
+    if (result) {
+      return { message: '내 정보가 성공적으로 업데이트 되었습니다.', result  };  
+    } else {
+      return { message: '내 정보가 성공적으로 업데이트 되었습니다.' };
+    }
   }
+
 
   @ApiDescription('프로필 사진 삭제')
   @ApiBearerAuthAccessToken()
