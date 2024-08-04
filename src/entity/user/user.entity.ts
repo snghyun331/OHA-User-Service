@@ -1,48 +1,45 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ProviderType } from '../../module/user/enum/enum';
-import { UserGradeEnum } from 'src/common/enum/enum';
+import { UserGradeEnum, YNEnum } from 'src/common/enum/enum';
 
-@Entity('User')
+@Entity('user')
 export class UserEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ name: 'user_id' })
   userId: number;
 
-  @Column({ type: 'boolean', default: false, nullable: false })
-  isJoined: boolean;
+  @Column({ name: 'is_joined', type: 'enum', enum: YNEnum, default: YNEnum.NO, nullable: false })
+  isJoined: YNEnum;
 
-  @Column({ type: 'enum', enum: ProviderType, nullable: false })
+  @Column({ name: 'provider_type', type: 'enum', enum: ProviderType, nullable: false })
   providerType: ProviderType;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ name: 'provider_id', type: 'varchar', nullable: false })
   providerId: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'email', type: 'varchar', nullable: true })
   email: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'hashed_refresh_token', type: 'varchar', nullable: true })
   hashedRF: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'encrypted_fcm_token', type: 'varchar', nullable: true })
   encryptedFCM: string;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'fcm_timestamp', type: 'timestamptz', nullable: true })
   FCMTimestamp: Date;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'nickname', type: 'varchar', nullable: true })
   name: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'profile_url', type: 'varchar', nullable: true })
   profileUrl: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  backgroundUrl: string;
-
-  @Column({ type: 'enum', enum: UserGradeEnum, default: UserGradeEnum.USER, nullable: false })
+  @Column({ name: 'user_grade', type: 'enum', enum: UserGradeEnum, default: UserGradeEnum.USER, nullable: false })
   userGrade: UserGradeEnum;
 
-  @CreateDateColumn({ nullable: false })
+  @CreateDateColumn({ name: 'created_at', nullable: false })
   createdAt: Date;
 
-  @UpdateDateColumn({ nullable: false })
+  @UpdateDateColumn({ name: 'updated_at', nullable: false })
   updatedAt: Date;
 }

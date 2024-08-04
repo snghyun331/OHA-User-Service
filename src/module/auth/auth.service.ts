@@ -24,7 +24,7 @@ import * as moment from 'moment-timezone';
 import { createNickName, createRandomName } from 'src/utils/utility';
 import { ProducerRecord } from 'kafkajs';
 import { ProducerService } from 'src/module/kafka/kafka.producer.service';
-import { UserGradeEnum } from 'src/common/enum/enum';
+import { UserGradeEnum, YNEnum } from 'src/common/enum/enum';
 
 @Injectable()
 export class AuthService {
@@ -72,7 +72,8 @@ export class AuthService {
           updatedAt: user.updatedAt,
         };
       }
-      return { isJoined: user.isJoined, isNameExist, ...result, userInfo };
+      const isJoined: boolean = user.isJoined === YNEnum.YES ? true : false;
+      return { isJoined, isNameExist, ...result, userInfo };
     } catch (e) {
       this.logger.error(e);
       throw e;
@@ -100,7 +101,8 @@ export class AuthService {
         createdAt: newUser.createdAt,
         updatedAt: newUser.updatedAt,
       };
-      return { isJoined: newUser.isJoined, isNameExist, ...result, userInfo };
+      const isJoined: boolean = newUser.isJoined === YNEnum.YES ? true : false;
+      return { isJoined, isNameExist, ...result, userInfo };
     } catch (e) {
       this.logger.error(e);
       if (e.response && e.response.data) {
@@ -261,7 +263,7 @@ export class AuthService {
   }
 
   async updateJoinStatus(userId, transactionManager: EntityManager) {
-    await transactionManager.update(UserEntity, userId, { isJoined: true });
+    await transactionManager.update(UserEntity, userId, { isJoined: YNEnum.YES });
     return;
   }
 
