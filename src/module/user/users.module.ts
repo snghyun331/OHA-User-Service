@@ -2,7 +2,7 @@ import { Logger, Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from '../../entity/user/user.entity';
+import { UserEntity } from '../../entity/user.entity';
 import { JwtStrategy } from '../../auth/strategy/jwt/jwt.access.strategy';
 import { DiskStorageModule } from '../../config/multer.module';
 import { ConsumerService } from '../kafka/kafka.consumer.service';

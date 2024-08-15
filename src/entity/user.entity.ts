@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { ProviderType } from '../../module/user/enum/enum';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { ProviderType } from '../module/user/enum/enum';
 import { UserGradeEnum, YNEnum } from 'src/common/enum/enum';
+import { FcmTokenEntity } from './fcmToken.entity';
 
 @Entity('user')
 export class UserEntity {
@@ -42,4 +43,7 @@ export class UserEntity {
 
   @UpdateDateColumn({ name: 'updated_at', nullable: false })
   updatedAt: Date;
+
+  @OneToMany(() => FcmTokenEntity, (token) => token.userIdRelation)
+  tokenRelation: FcmTokenEntity[];
 }

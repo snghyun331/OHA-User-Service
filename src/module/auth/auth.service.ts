@@ -11,7 +11,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../entity/user/user.entity';
+import { UserEntity } from '../../entity/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { ProviderType } from '../user/enum/enum';
 import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interface';

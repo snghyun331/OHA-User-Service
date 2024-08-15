@@ -9,7 +9,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { EntityManager, In, Repository } from 'typeorm';
-import { UserEntity } from '../../entity/user/user.entity';
+import { UserEntity } from '../../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { unlink } from 'fs/promises';
