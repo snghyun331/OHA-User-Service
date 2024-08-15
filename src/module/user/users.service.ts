@@ -77,7 +77,7 @@ export class UsersService implements OnModuleInit {
       await transactionManager.update(UserEntity, userId, { name: dto.name });
     }
     if (dto.profileImage) {
-      const fileName = dto.profileImage.filename
+      const fileName = dto.profileImage.filename;
       const user = await this.usersRepository.findOne({ where: { userId } });
 
       if (!user) {
@@ -290,7 +290,7 @@ export class UsersService implements OnModuleInit {
               event.reporting_user_fcm_token = reportingUser.encryptedFCM;
               event.reported_user_fcm_token = reportedUser.encryptedFCM;
             }
-            
+
             if (sendTopic) {
               this.producerService.produce({
                 topic: sendTopic,

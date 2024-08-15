@@ -25,7 +25,7 @@ export class UserEntity {
   @Column({ name: 'encrypted_fcm_token', type: 'varchar', nullable: true })
   encryptedFCM: string;
 
-  @Column({ name: 'fcm_timestamp', type: 'timestamptz', nullable: true })
+  @Column({ name: 'fcm_timestamp', type: 'timestamp', nullable: true })
   FCMTimestamp: Date;
 
   @Column({ name: 'nickname', type: 'varchar', nullable: true })

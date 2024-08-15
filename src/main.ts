@@ -7,7 +7,7 @@ import { SwaggerConfig } from './config/swagger.config';
 import { SwaggerModule } from '@nestjs/swagger';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ValidationPipe } from '@nestjs/common';
-import { eurekaClient } from './config/eureka.config';
+import { EurekaClient } from './config/eureka.config';
 
 const port = process.env.PORT1 || process.env.PORT2;
 const env = process.env.NODE_ENV;
@@ -42,9 +42,9 @@ async function bootstrap() {
   // run server
   try {
     await app.listen(port);
-    if (env === 'product') {
-      eurekaClient.logger.level('log');
-      eurekaClient.start();
+    if (env === 'dev' || env === 'prod') {
+      EurekaClient.logger.level('log');
+      EurekaClient.start();
     }
     winstonLogger.log(`Server is running on http port ${port}`);
   } catch (error) {

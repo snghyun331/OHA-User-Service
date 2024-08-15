@@ -226,7 +226,7 @@ export class AuthService {
     const body = { code: code };
 
     let apiUrl;
-    if (process.env.NODE_ENV === 'dev') {
+    if (process.env.NODE_ENV === 'local') {
       apiUrl = `http://${process.env.HOST}:3010/api/common/location/freqdistrict`;
     } else {
       apiUrl = `http://${process.env.Eureka_HOST}/api/common/location/freqdistrict`;

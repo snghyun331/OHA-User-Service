@@ -6,7 +6,7 @@ const env = process.env.NODE_ENV;
 const appName = `USER-SERVICE${env === 'product' ? '-DEV' : ''}`;
 const executeUrl = `${process.env.HOST}:${process.env.PORT1}`;
 
-export const eurekaClient = new Eureka({
+export const EurekaClient = new Eureka({
   instance: {
     app: appName,
     hostName: process.env.HOST,

@@ -27,7 +27,6 @@ import { ApiConsumes } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
-
   @ApiDescription('닉네임 및 프로필 업데이트')
   @ApiConsumes('multipart/form-data')
   @ApiBearerAuthAccessToken()
@@ -39,15 +38,14 @@ export class UsersController {
     @TransactionManager() transactionManager,
     @UploadedFile() profileImage: Express.Multer.File,
     @Body() dto: UpdateMyInfoDto,
-  ): Promise<{ message: string, result?: any}> {
-    const result = await this.userService.updateMyInfo(userId, {...dto, profileImage}, transactionManager);
+  ): Promise<{ message: string; result?: any }> {
+    const result = await this.userService.updateMyInfo(userId, { ...dto, profileImage }, transactionManager);
     if (result) {
-      return { message: '내 정보가 성공적으로 업데이트 되었습니다.', result  };  
+      return { message: '내 정보가 성공적으로 업데이트 되었습니다.', result };
     } else {
       return { message: '내 정보가 성공적으로 업데이트 되었습니다.' };
     }
   }
-
 
   @ApiDescription('프로필 사진 삭제')
   @ApiBearerAuthAccessToken()
