@@ -45,6 +45,7 @@
     "kafkajs": "^2.2.4",
     "moment-timezone": "^0.5.45",
     "morgan": "^1.10.0",
+    "mysql": "^2.18.1",
     "nest-winston": "^1.9.4",
     "nestjs-eureka": "^2.0.0",
     "passport": "^0.7.0",
