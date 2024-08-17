@@ -5,31 +5,32 @@ import { UsersService } from './users.service';
 import { TransactionInterceptor } from '../../interceptor/transaction.interceptor';
 import { JwtAuthGuard } from '../../auth/guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GetUserId, TransactionManager } from 'src/utils/decorators';
 import {
-  GetUserId,
-  TransactionManager,
-  ApiBearerAuthAccessToken,
-  ApiBodyImageForm,
-  ApiConsumesMultiForm,
-  ApiDescription,
-  ApiResponseErrorBadRequest,
-  ApiResponseErrorConflict,
-  ApiResponseErrorNotFound,
-  ApiResponseSuccess,
-  ApiTagUser,
-  ApiResponseProfileUpload,
-  ApiParamDescription,
-} from 'src/utils/decorators';
-import { ApiConsumes } from '@nestjs/swagger';
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  USER_ALL_USERS,
+  USER_MY_INFO,
+  USER_ONE_USER,
+  USER_PROFILE_DELETE,
+  USER_SPECIFIC_USERS,
+} from './swagger/user.swagger';
 
-@ApiTagUser()
+@ApiTags('USER')
 @Controller('api/user')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
-  @ApiDescription('닉네임 및 프로필 업데이트')
+  @ApiOperation(USER_MY_INFO.PUT.API_OPERATION)
   @ApiConsumes('multipart/form-data')
-  @ApiBearerAuthAccessToken()
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor, FileInterceptor('profileImage'))
   @Put('myinfo')
@@ -47,10 +48,10 @@ export class UsersController {
     }
   }
 
-  @ApiDescription('프로필 사진 삭제')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseSuccess()
-  @ApiResponseErrorNotFound('존재하지 않는 사용자, 프로필이 이미 삭제되었거나 존재하지 않음')
+  @ApiOperation(USER_PROFILE_DELETE.PUT.API_OPERATION)
+  @ApiOkResponse(USER_PROFILE_DELETE.PUT.API_OK_RESPONSE)
+  @ApiNotFoundResponse(USER_PROFILE_DELETE.PUT.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @Put('image/profile-delete')
@@ -62,10 +63,10 @@ export class UsersController {
     return { message: '성공적으로 프로필이 삭제되었습니다.' };
   }
 
-  @ApiDescription('현재 사용자 정보 조회')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseSuccess()
-  @ApiResponseErrorNotFound('존재하지 않는 사용자')
+  @ApiOperation(USER_MY_INFO.GET.API_OPERATION)
+  @ApiOkResponse(USER_MY_INFO.GET.API_OK_RESPONSE)
+  @ApiNotFoundResponse(USER_MY_INFO.GET.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('myinfo')
   async getMyInfo(@GetUserId() userId: number): Promise<{ message: string; result: any }> {
@@ -73,9 +74,9 @@ export class UsersController {
     return { message: '내 정보를 성공적으로 가져왔습니다', result };
   }
 
-  @ApiDescription('모든 사용자 정보 조히')
-  @ApiResponseSuccess()
-  @ApiBearerAuthAccessToken()
+  @ApiOperation(USER_ALL_USERS.GET.API_OPERATION)
+  @ApiOkResponse(USER_ALL_USERS.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('allusers')
   async getAllUsers(): Promise<{ message: string; result: any }> {
@@ -83,8 +84,8 @@ export class UsersController {
     return { message: '모든 사용자 정보를 성공적으로 가져왔습니다', result };
   }
 
-  @ApiDescription('특정 사용자 여러명 정보 조회')
-  @ApiBearerAuthAccessToken()
+  @ApiOperation(USER_SPECIFIC_USERS.GET.API_OPERATION)
+  @ApiBearerAuth('access-token')
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(JwtAuthGuard)
   @Post('specificusers')
@@ -96,9 +97,9 @@ export class UsersController {
     return { message: '요청한 유저들의 정보를 성공적으로 가져왔습니다', result };
   }
 
-  @ApiDescription('특정 사용자 한명 정보 조회')
-  @ApiParamDescription('userId', '숫자로 입력해주세요')
-  @ApiBearerAuthAccessToken()
+  @ApiOperation(USER_ONE_USER.GET.API_OPERATION)
+  @ApiParam(USER_ONE_USER.GET.API_PARAM1)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('specificuser/:userId')
   async getSpecificUser(@Param('userId') userId: number): Promise<{ message: string; result: any }> {

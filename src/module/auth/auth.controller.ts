@@ -23,36 +23,41 @@ import {
   NaverAuthGuard,
   AppleAuthGuard,
 } from '../../auth/guard';
-import {
-  GetUser,
-  GetUserId,
-  GetUserProviderId,
-  TransactionManager,
-  ApiTagAuth,
-  ApiDescription,
-  ApiResponseLoginSuccess,
-  ApiExclude,
-  ApiBearerAuthRefreshToken,
-  ApiResponseSuccess,
-  ApiResponseErrorBadRequest,
-  ApiResponseErrorUnauthorized,
-  ApiBearerAuthAccessToken,
-  ApiResponseCompleteTermSuccess,
-} from '../../utils/decorators';
+import { GetUser, GetUserId, GetUserProviderId, TransactionManager } from '../../utils/decorators';
 import { FCMDto } from './dto/fcm.dto';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiExcludeEndpoint,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import {
+  AUTH_APPLE_LOGIN,
+  AUTH_GOOGLE_LOGIN,
+  AUTH_KAKAO_LOGIN,
+  AUTH_LOGOUT,
+  AUTH_NAVER_LOGIN,
+  AUTH_REFRESH,
+  AUTH_SEND_FCM,
+  AUTH_TERMS_AGREE,
+  AUTH_WITHDRAW,
+} from './swagger/auth.swagger';
 
-@ApiTagAuth()
+@ApiTags('AUTH')
 @Controller('api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiDescription('구글 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
-  @ApiResponseLoginSuccess()
+  @ApiOperation(AUTH_GOOGLE_LOGIN.GET.API_OPERATION)
+  @ApiOkResponse(AUTH_GOOGLE_LOGIN.GET.API_OK_RESPONSE)
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
   async googleLogin(): Promise<void> {}
 
-  @ApiExclude()
+  @ApiExcludeEndpoint()
   @UseGuards(GoogleAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @Get('google/callback')
@@ -75,20 +80,19 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription('카카오 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
-  @ApiResponseLoginSuccess()
+  @ApiOperation(AUTH_KAKAO_LOGIN.GET.API_OPERATION)
+  @ApiOkResponse(AUTH_KAKAO_LOGIN.GET.API_OK_RESPONSE)
   @UseGuards(KakaoAuthGuard)
   @Get('kakao/login')
   async kakaoLogin(): Promise<void> {}
 
-  @ApiExclude()
+  @ApiExcludeEndpoint()
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(KakaoAuthGuard)
   @Get('kakao/callback')
   async kakaoCallback(
     @TransactionManager() transactionManager,
     @GetUser() kakaoUser: KakaoUser,
-
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string; result: any }> {
     const loginResult = await this.authService.handleSocialLogin(kakaoUser, transactionManager);
@@ -106,13 +110,13 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription('네이버 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
-  @ApiResponseLoginSuccess()
+  @ApiOperation(AUTH_NAVER_LOGIN.GET.API_OPERATION)
+  @ApiOkResponse(AUTH_NAVER_LOGIN.GET.API_OK_RESPONSE)
   @UseGuards(NaverAuthGuard)
   @Get('naver/login')
   async naverLogin(): Promise<void> {}
 
-  @ApiExclude()
+  @ApiExcludeEndpoint()
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(NaverAuthGuard)
   @Get('naver/callback')
@@ -136,13 +140,13 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription('애플 로그인', 'New 유저는 약관 동의가 완료되면 로그인 및 가입이 이루어집니다.')
-  @ApiResponseLoginSuccess()
+  @ApiOperation(AUTH_APPLE_LOGIN.GET.API_OPERATION)
+  @ApiOkResponse(AUTH_APPLE_LOGIN.GET.API_OK_RESPONSE)
   @UseGuards(AppleAuthGuard)
   @Get('apple/login')
   async appleLogin(): Promise<void> {}
 
-  @ApiExclude()
+  @ApiExcludeEndpoint()
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(AppleAuthGuard)
   @Post('apple/callback')
@@ -167,9 +171,9 @@ export class AuthController {
     return { message: '로그인 성공했습니다', result };
   }
 
-  @ApiDescription('약관동의 완료 후 호출할 API - 아직 가입 안한 유저(isJoined: false)에 해당')
-  @ApiResponseCompleteTermSuccess()
-  @ApiBearerAuthAccessToken()
+  @ApiOperation(AUTH_TERMS_AGREE.PUT.API_OPERATION)
+  @ApiOkResponse(AUTH_TERMS_AGREE.PUT.API_OK_RESPONSE)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @Put('termsagree')
@@ -181,11 +185,11 @@ export class AuthController {
     return { message: '해당 유저에 대한 약관동의가 완료되었습니다.' };
   }
 
-  @ApiDescription('엑세스 토큰 리프레시(엑세스 토큰이 만료되었을 경우 해당 API로 엑세스 토큰 갱신')
-  @ApiBearerAuthRefreshToken()
-  @ApiResponseSuccess()
-  @ApiResponseErrorBadRequest('Refresh Token이 없거나 형식에 어긋날 때')
-  @ApiResponseErrorUnauthorized('Refresh Token 만료')
+  @ApiOperation(AUTH_REFRESH.GET.API_OPERATION)
+  @ApiOkResponse(AUTH_REFRESH.GET.API_OK_RESPONSE)
+  @ApiBadRequestResponse(AUTH_REFRESH.GET.API_BAD_REQUEST_RESPONSE)
+  @ApiUnauthorizedResponse(AUTH_REFRESH.GET.API_UNAUTHORIZED_RESPONSE)
+  @ApiBearerAuth('refresh-token')
   @UseGuards(JwtRefreshAuthGuard)
   @Get('refresh')
   async refreshAccessToken(
@@ -199,9 +203,9 @@ export class AuthController {
     return { message: '성공적으로 access 토큰이 갱신되었습니다', result };
   }
 
-  @ApiDescription('로그아웃')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseSuccess()
+  @ApiOperation(AUTH_LOGOUT.POST.API_OPERATION)
+  @ApiOkResponse(AUTH_LOGOUT.POST.API_OK_RESPONSE)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @HttpCode(HttpStatus.OK)
@@ -216,9 +220,9 @@ export class AuthController {
     return { message: '성공적으로 로그아웃 되었습니다.' };
   }
 
-  @ApiDescription('회원탈퇴')
-  @ApiBearerAuthAccessToken()
-  @ApiResponseSuccess()
+  @ApiOperation(AUTH_WITHDRAW.DELETE.API_OPERATION)
+  @ApiOkResponse(AUTH_WITHDRAW.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @Delete('withdraw')
@@ -233,8 +237,8 @@ export class AuthController {
     return { message: '성공적으로 탈퇴되었습니다' };
   }
 
-  @ApiDescription('FCM 토큰 전송 API', 'body로 오는 fcm 토큰은 fcm 토큰 생성 시간과 함께 DB에 저장됩니다.')
-  @ApiBearerAuthAccessToken()
+  @ApiOperation(AUTH_SEND_FCM.PUT.API_OPERATION)
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(TransactionInterceptor)
   @Put('fcm-token')
