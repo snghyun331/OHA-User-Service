@@ -1,4 +1,4 @@
-import { RandomNames } from './randomname';
+import { RandomNames } from './randomName';
 
 export const createRandomName = () => {
   const randomIndex = Math.floor(Math.random() * RandomNames.length);

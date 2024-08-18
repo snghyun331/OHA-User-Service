@@ -2,10 +2,10 @@ import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseIn
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UsersInfoDto } from './dto/users-info.dto';
 import { UsersService } from './users.service';
-import { TransactionInterceptor } from '../../interceptor/transaction.interceptor';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { JwtAuthGuard } from '../../auth/guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GetUserId, TransactionManager } from 'src/utils/decorators';
+import { GetUserId, TransactionManager } from 'src/common/decorator';
 import {
   ApiBearerAuth,
   ApiConsumes,

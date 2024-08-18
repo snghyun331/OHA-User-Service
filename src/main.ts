@@ -2,53 +2,58 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './module/app.module';
 import { winstonLogger } from './config/winston.config';
 import * as morgan from 'morgan';
-import { TransformInterceptor } from './interceptor/response.interceptor';
-import { SwaggerConfig } from './config/swagger.config';
-import { SwaggerModule } from '@nestjs/swagger';
+import { TransformInterceptor } from './common/interceptor/response.interceptor';
+import { setupSwagger } from './config/swagger.config';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ValidationPipe } from '@nestjs/common';
 import { EurekaClient } from './config/eureka.config';
-
-const port = process.env.PORT1 || process.env.PORT2;
-const env = process.env.NODE_ENV;
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { ConfigService } from '@nestjs/config';
+import { validationOptions } from './config/validation.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    cors: true,
     logger: winstonLogger,
   });
 
+  const configService: ConfigService = app.get(ConfigService);
+  const env: string = configService.get<string>('NODE_ENV');
+  const SERVER_PORT: number = configService.get<number>('PORT');
+
+  app.set('trust proxy', true);
+
   // cors settings
   const corsOptions: CorsOptions = {
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   };
   app.enableCors(corsOptions);
 
   // app.use(morgan('combined'));  // product
-  app.use(morgan('dev')); // dev
+  // app.use(morgan('dev')); // dev
 
   // use global pipe
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalPipes(new ValidationPipe(validationOptions));
 
   // use global interceptors
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  // run swagger
-  const config = new SwaggerConfig().initializeOptions();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/user/swagger', app, document, {
-    swaggerOptions: { defaultModelsExpandDepth: -1 },
-  });
+  // swagger setting
+  setupSwagger(app);
 
   // run server
   try {
-    await app.listen(port);
+    await app.listen(SERVER_PORT);
     if (env === 'dev' || env === 'prod') {
       EurekaClient.logger.level('log');
       EurekaClient.start();
     }
-    winstonLogger.log(`Server is running on http port ${port}`);
-  } catch (error) {
-    winstonLogger.error('Failed to start the app server');
+    winstonLogger.log(`✅ Server is listening on port ${SERVER_PORT}`);
+  } catch (e) {
+    winstonLogger.error(e);
+    winstonLogger.error('⛔️ Failed to start the app server');
   }
 }
 bootstrap();

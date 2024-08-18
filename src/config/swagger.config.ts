@@ -1,11 +1,18 @@
-import { DocumentBuilder } from '@nestjs/swagger';
+import { INestApplication } from '@nestjs/common';
+import { DocumentBuilder, OpenAPIObject, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 
-export class SwaggerConfig {
-  public builder = new DocumentBuilder();
+const swaggerCustomOptions: SwaggerCustomOptions = {
+  swaggerOptions: {
+    persistAuthorization: true,
+    defaultModelsExpandDepth: -1,
+  },
+};
 
-  public initializeOptions() {
-    return this.builder
-      .setTitle('OHA')
+export function setupSwagger(app: INestApplication): void {
+  if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'local') {
+    const options: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
+      .setTitle('OHA-USER')
+      .setDescription('OHA-USER API Swagger 문서')
       .setVersion('1.0')
       .addBearerAuth(
         {
@@ -26,5 +33,8 @@ export class SwaggerConfig {
         'refresh-token',
       )
       .build();
+
+    const document = SwaggerModule.createDocument(app, options);
+    SwaggerModule.setup('api/user/swagger', app, document, swaggerCustomOptions);
   }
 }

@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
-import { TransactionInterceptor } from '../../interceptor/transaction.interceptor';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GoogleUser, KakaoUser, NaverUser, AppleUser } from './interface';
 import {
   JwtAuthGuard,
@@ -23,7 +23,7 @@ import {
   NaverAuthGuard,
   AppleAuthGuard,
 } from '../../auth/guard';
-import { GetUser, GetUserId, GetUserProviderId, TransactionManager } from '../../utils/decorators';
+import { GetUser, GetUserId, GetUserProviderId, TransactionManager } from 'src/common/decorator';
 import { FCMDto } from './dto/fcm.dto';
 import {
   ApiBadRequestResponse,
