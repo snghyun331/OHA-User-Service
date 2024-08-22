@@ -1,0 +1,62 @@
+name: Deploy to testServer
+
+on:
+  push:
+    branches: ['dev']
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: remote ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.TEST_SSH_HOST }}
+          username: ${{ secrets.TEST_SSH_USER }}
+          key: ${{ secrets.TEST_PRIVATE_KEY }}
+          timeout: 60s
+          script: |
+            echo "############# CREATE .ENV #############"
+            [ -f .env ] && rm .env
+            touch .env
+            echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+            echo "HOST=${{ secrets.HOST }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_PW=${{ secrets.DB_PW }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "OAUTH_GOOGLE_ID=${{ secrets.OAUTH_GOOGLE_ID }}" >> .env
+            echo "OAUTH_GOOGLE_SECRET=${{ secrets.OAUTH_GOOGLE_SECRET }}" >> .env
+            echo "OAUTH_GOOGLE_REDIRECT=${{ secrets.OAUTH_GOOGLE_REDIRECT }}" >> .env
+            echo "OAUTH_KAKAO_ID=${{ secrets.OAUTH_KAKAO_ID }}" >> .env
+            echo "OAUTH_KAKAO_SECRET=${{ secrets.OAUTH_KAKAO_SECRET }}" >> .env
+            echo "OAUTH_KAKAO_REDIRECT=${{ secrets.OAUTH_KAKAO_REDIRECT }}" >> .env
+            echo "OAUTH_NAVER_ID=${{ secrets.OAUTH_NAVER_ID }}" >> .env
+            echo "OAUTH_NAVER_SECRET=${{ secrets.OAUTH_NAVER_SECRET }}" >> .env
+            echo "OAUTH_NAVER_REDIRECT=${{ secrets.OAUTH_NAVER_REDIRECT }}" >> .env
+            echo "OAUTH_APPLE_ID=${{ secrets.OAUTH_APPLE_ID }}" >> .env
+            echo "OAUTH_APPLE_TEAM=${{ secrets.OAUTH_APPLE_TEAM }}" >> .env
+            echo "OAUTH_APPLE_REDIRECT=${{ secrets.OAUTH_APPLE_REDIRECT }}" >> .env
+            echo "OAUTH_APPLE_KEY=${{ secrets.OAUTH_APPLE_KEY }}" >> .env
+            echo "OAUTH_APPLE_KEY_PW=${{ secrets.OAUTH_APPLE_KEY_PW }}" >> .env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+            echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env
+            echo "JWT_ACCESS_EXPIRATION_TIME=${{ secrets.JWT_ACCESS_EXPIRATION_TIME }}" >> .env
+            echo "JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}" >> .env
+            echo "ENCRYPT_SECRET_KEY=${{ secrets.ENCRYPT_SECRET_KEY }}" >> .env
+            echo "TZ=${{ secrets.TZ }}" >> .env
+            echo "Eureka_HOST=${{ secrets.Eureka_HOST }}" >> .env
+            echo "Eureka_PORT=${{ secrets.Eureka_PORT }}" >> .env
+            echo "KAFKAJS_NO_PARTITIONER_WARNING=${{ secrets.KAFKAJS_NO_PARTITIONER_WARNING }}" >> .env
+            echo "KAFKA_ENV=${{ secrets.KAFKA_ENV }}" >> .env
+            echo "KAFKA_HOST=${{ secrets.KAFKA_HOST }}" >> .env
+            echo "KAFKA_PORT=${{ secrets.KAFKA_PORT }}" >> .env
+            echo "KAFKA_AUTO_OFFSET_RESET=${{ secrets.KAFKA_AUTO_OFFSET_RESET }}" >> .env
+            echo "############# MOVE DIRECTORY #############"
+            cd ../../user/api
+            echo "############# GIT PULL #############"
+            sudo git pull origin dev
+            echo "############# RUN SCRIPT #############"
+            sh script.sh
